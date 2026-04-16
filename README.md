@@ -13,6 +13,7 @@ Each layer can run independently. LUTHIER is the integration layer that connects
 ## Stack Overview
 
 ```
+                                             ↕ LUTHIER integration layer
 ┌─────────────────────────────────────────┐
 │  ARCO  │  Planning · Guidance · Mapping │  Python
 ├─────────────────────────────────────────┤
@@ -20,7 +21,6 @@ Each layer can run independently. LUTHIER is the integration layer that connects
 ├─────────────────────────────────────────┤
 │  BOSSA │  Daemon · HAL · Real-time IO   │  C++20 / ARM64
 └─────────────────────────────────────────┘
-        ↕ LUTHIER integration layer
 ```
 
 ## Documentation Index
