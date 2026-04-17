@@ -58,11 +58,9 @@ LUTHIER follows a four-level SDLC that mirrors the architecture:
 | Level | Scope | When |
 |-------|-------|------|
 | Level 1 — Functional | Full system, end-to-end behavior | Release gates (CD) |
-| Level 2 — Integration | Cross-layer interfaces (ARCO↔FRET, FRET↔BOSSA) | Push to main (remote) |
-| Level 3 — Module / PR | Changes within a single subproject | Push to dev branch (both local and remote) |
-| Level 4 — Unit / Commit | Individual functions and classes | Every commit, locally|
-
-Levels 3 and 4 are enforced inside each subproject's own CI. LUTHIER owns Levels 1 and 2.
+| Level 2 — Integration | Cross-layer interfaces (ARCO↔FRET, FRET↔BOSSA) | Push to main (remote), PR and issue closing. Simulations, videos, imagines... Everything that might help visual inspection|
+| Level 3 — Module / PR | Described by issues, requires full descrition and SMART DoD (acceptance criteria) | Push to dev branch (both local and remote), pre report script as in ARCO |
+| Level 4 — Unit / Commit | Individual functions and classes | Every commit, locally (build + format)|
 
 ## Setup
 
