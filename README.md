@@ -329,9 +329,12 @@ src/luthier/
   pipeline.py         # orchestration (loads stack.yml)
   models.py           # shared domain types
   protocols/          # layer interfaces (Strategy contracts)
+    observability.py  # ProgressReporter (cross-cutting)
+    cache.py          # ArtifactCache (cross-cutting)
   stack/
     config.py         # load stack.yml
     registry.py       # algorithm name → implementation
+    bootstrap.py      # register built-ins + discover plugins
   io/
     pathlib_discover.py
     opencv_decode.py
