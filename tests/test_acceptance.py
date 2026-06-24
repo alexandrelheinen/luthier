@@ -6,11 +6,33 @@ from pathlib import Path
 
 import pytest
 
-from conftest import GOLDEN_IMAGES_DIR, requires_golden_images  # type: ignore[import-not-found]
-from luthier.exceptions import NotImplementedPipelineError
+from luthier.exceptions import InvalidInputError, NotImplementedPipelineError
+from luthier.io.images import discover_images
 from luthier.pipeline import reconstruct_from_directory
 
-pytestmark = [pytest.mark.acceptance, requires_golden_images]
+GOLDEN_IMAGES_DIR = Path(__file__).parent / "data" / "golden" / "images"
+MIN_GOLDEN_IMAGES = 10
+
+
+def _golden_images_available() -> bool:
+    if not GOLDEN_IMAGES_DIR.is_dir():
+        return False
+    try:
+        return len(discover_images(GOLDEN_IMAGES_DIR)) >= MIN_GOLDEN_IMAGES
+    except InvalidInputError:
+        return False
+
+
+pytestmark = [
+    pytest.mark.acceptance,
+    pytest.mark.skipif(
+        not _golden_images_available(),
+        reason=(
+            "Golden images not found: need >= 10 supported images in "
+            "tests/data/golden/images/ (run ./scripts/fetch_golden_colmap.sh)"
+        ),
+    ),
+]
 
 
 @pytest.mark.xfail(
