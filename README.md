@@ -10,6 +10,7 @@ is not implemented yet.
 | Document | Description |
 | --- | --- |
 | [docs/specification.md](docs/specification.md) | Product spec and acceptance criteria (SDD) |
+| [docs/decisions.md](docs/decisions.md) | Resolved architecture decisions (Step 1 / M1) |
 | [docs/architecture.md](docs/architecture.md) | System design and module layout |
 | [docs/testing.md](docs/testing.md) | TDD strategy and test traceability |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Development workflow and quality gates |
@@ -210,6 +211,8 @@ ruff check src tests
 mypy
 pytest --cov=luthier --cov-report=term-missing
 ```
+
+CI enforces **≥ 80%** line coverage on `luthier` (`fail_under` in `pyproject.toml`).
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for SDD → V-cycle → TDD workflow and
 unitary commit rules.

@@ -97,6 +97,12 @@ mypy_path = "src"
 branch = true
 source = ["luthier"]
 
+# -----------------------------------------------------------------------------
+# CI quality gate — unit test line coverage on src/luthier (%).
+# pytest-cov enforces fail_under; CI fails when coverage drops below this value.
+# Tune only this number unless you also document a change in docs/decisions.md.
+# -----------------------------------------------------------------------------
 [tool.coverage.report]
+fail_under = 80
 show_missing = true
 skip_empty = true
