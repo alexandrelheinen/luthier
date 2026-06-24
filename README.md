@@ -2,10 +2,26 @@
 
 **Photogrammetry from photographs to 3D point clouds.**
 
-luthier is a Python library and command-line tool that reconstructs a **colored
-3D point cloud** from a folder of overlapping images. Version **0.2.0** ships the
-**specification, CLI framework, and tests**; the reconstruction pipeline itself
-is not implemented yet.
+[![CI](https://github.com/alexandrelheinen/luthier/actions/workflows/ci.yml/badge.svg)](https://github.com/alexandrelheinen/luthier/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.10%E2%80%933.13-blue)](https://www.python.org/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
+luthier is a photogrammetry project shipped as two faces of one engine:
+
+- a **Python library** (`import luthier`) for embedding reconstruction in your
+  own pipelines, and
+- a **command-line client** (`luthier …`) for running reconstruction from a
+  shell.
+
+Both reconstruct a **colored 3D point cloud** from a folder of overlapping
+images.
+
+> **Project status — v0.2.0 (framework):** this release ships the
+> **specification, CLI/library framework, pluggable algorithm stack, and tests**.
+> The reconstruction pipeline itself is **not implemented yet**: the CLI exits
+> with code `2` and the Python API raises `NotImplementedPipelineError`. Code
+> samples below describe the **target** behavior unless noted otherwise.
 
 | Document | Description |
 | --- | --- |
@@ -21,15 +37,15 @@ is not implemented yet.
 ## What it does (target behavior)
 
 ```text
-  photos/          luthier              scene.ply
- ┌─────────┐      ─────────►         ┌─────────────┐
- │ img1.jpg│      photogrammetry     │ 3D points   │
- │ img2.jpg│                        │ + RGB colors  │
- │  …      │                        └──────┬──────┘
- └─────────┘                               │
-                                           ▼
-                                    CloudCompare
-                                    (viewer)
+  photos/                                          scene.ply
+ ┌──────────┐                                    ┌──────────────┐
+ │ img1.jpg │                                    │ 3D points    │
+ │ img2.jpg │  ──  luthier (photogrammetry)  ──▶ │ + RGB colors │
+ │   ...    │                                    └──────┬───────┘
+ └──────────┘                                           │
+                                                        ▼
+                                                  CloudCompare
+                                                   (viewer)
 ```
 
 1. Read images from a **local directory** (`--dir`).
@@ -50,11 +66,11 @@ Full contracts (inputs, outputs, formats) are in
 
 ```mermaid
 flowchart LR
-    IO["IO\nprepare ImageSet"]
-    FE["Features\nkeypoints + descriptors"]
-    OPT["Optimization\nmatch, SfM, color"]
-    POST["Post-process\noutlier rejection"]
-    OUT["Output\nbinary PLY"]
+    IO["IO<br/>prepare ImageSet"]
+    FE["Features<br/>keypoints + descriptors"]
+    OPT["Optimization<br/>match, SfM, color"]
+    POST["Post-process<br/>outlier rejection"]
+    OUT["Output<br/>binary PLY"]
 
     IO --> FE --> OPT --> POST --> OUT
 ```
@@ -84,7 +100,7 @@ not by rewriting `pipeline.py`.
 | Pattern | Role in luthier |
 | --- | --- |
 | [**Strategy**](https://refactoring.guru/design-patterns/strategy) | Each algorithm implements a small **layer protocol** (`protocols/*.py`) with one job (discover, extract, reconstruct, filter, write). |
-| [**Registry**](https://refactoring.guru/design-patterns/registry) | `stack/registry.py` maps the string in `stack.yml` (`algorithm: colmap_sift`) to a factory that builds the Strategy. |
+| [**Registry**](https://martinfowler.com/eaaCatalog/registry.html) | `stack/registry.py` maps the string in `stack.yml` (`algorithm: colmap_sift`) to a factory that builds the Strategy. |
 | **Pipeline (application)** | `pipeline.py` loads `StackConfig`, resolves each slot, passes **domain artifacts** layer to layer (`ImageSet` → `FeatureSet` → … → `PointCloud`). |
 
 Only **general structures** are shared across layers:
@@ -356,9 +372,13 @@ black src tests
 ruff check src tests
 mypy
 pytest --cov=luthier --cov-report=term-missing
+python scripts/check_governance.py   # method-enforcement gate (see CONTRIBUTING)
 ```
 
-CI enforces **≥ 80%** line coverage on `luthier` (`fail_under` in `pyproject.toml`).
+CI enforces **≥ 80%** line coverage on `luthier` (`fail_under` in `pyproject.toml`)
+and runs a **governance** job (requirement traceability, stack/code consistency,
+Conventional commits) — see
+[CONTRIBUTING.md § Method enforcement](CONTRIBUTING.md#method-enforcement-cicd).
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for SDD → V-cycle → TDD workflow and
 unitary commit rules.
