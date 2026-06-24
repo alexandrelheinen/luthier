@@ -33,6 +33,7 @@ dev = [
     "pytest-cov>=6.0",
     "black>=24.10",
     "ruff>=0.8",
+    "mypy>=1.13",
 ]
 
 [tool.pytest.ini_options]
@@ -55,3 +56,9 @@ select = ["E", "W", "F", "I", "UP", "B", "SIM"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["luthier"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+packages = ["luthier"]
+mypy_path = "src"
