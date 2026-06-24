@@ -2,7 +2,8 @@
 
 This document records **resolved** open decisions from
 [specification.md](specification.md) §14. It is the spec-anchored input for M1
-implementation (sparse SfM → binary PLY).
+implementation (sparse SfM → binary PLY). For the full algorithm catalog see
+[algorithms.md](algorithms.md).
 
 **Status:** Approved for M1 unless a maintainer opens a follow-up issue.
 
