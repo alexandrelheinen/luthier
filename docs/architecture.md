@@ -53,16 +53,22 @@ Two orthogonal views apply:
 
 | Layer | Modules | Responsibility |
 | --- | --- | --- |
-| **Interface** | `cli`, `__main__`, *(future `web`)* | Argument parsing, stdout/stderr, exit codes; optional HTTP UI |
+| **Interface** | `cli`, `__main__`, *(future `web`, `api`)* | Argument parsing, stdout/stderr, exit codes; optional HTTP UI |
 | **Application** | `pipeline` | Orchestrate reconstruction end-to-end |
 | **Domain** | `models`, `exceptions` | Typed data and error taxonomy |
 | **Algorithm** | `io`, `features`, `reconstruction`, `postprocess`, `output` | See §9 — input prep through serialization |
 | **Adapters** | `reconstruction.colmap` (M1) | Wrap **pycolmap**; map errors to `ReconstructionError` |
+| **Cross-cutting** | `protocols.observability`, `protocols.cache`, `stack` (registry/bootstrap) | Concerns that span all layers: progress/telemetry, artifact caching, algorithm discovery — see [§11 Scalability](#11-scalability-and-extensibility) |
 
 Algorithm stages (feature extraction, matching, SfM, coloring, outlier rejection)
 are **logical sub-stages** inside the Algorithm layers; M1 may delegate several
 of them to pycolmap while keeping the §9 contracts stable for tests and future
 backends.
+
+**Cross-cutting layer:** observability, caching, and plugin discovery are
+deliberately *not* pipeline stages — they are orthogonal concerns injected into
+every stage. Treating them as a stage would couple unrelated responsibilities
+and break the Strategy boundary. See §11 for the scalability rationale.
 
 ---
 
@@ -610,3 +616,130 @@ src/luthier/
 ```
 
 See also [README § Pluggable algorithm stack](../README.md#pluggable-algorithm-stack-design-guidelines).
+
+---
+
+## 11. Scalability and extensibility
+
+This section is a **critical review** of whether the §2 layering and the §10
+config-driven stack scale along the axes luthier must grow on, and it specifies
+the additional **interfaces** required to close the gaps. It is the spec-anchored
+input for the cross-cutting scaffolding (see [decisions.md](decisions.md)
+AD-09 … AD-12).
+
+### 11.1 Scaling axes — assessment
+
+| Axis | Current design | Verdict | Gap to close |
+| --- | --- | --- | --- |
+| **More images per run** (10 → 10⁴) | Stages pass whole artifacts in memory; no caching or resume | ⚠️ Limited | Artifact cache + streaming-friendly artifacts (§11.4) |
+| **More algorithms / backends** | Strategy + Registry + `{algorithm_name}.py` | ✅ Good shape | Registry is **never populated** at runtime; needs discovery (§11.2) |
+| **More clients** (CLI → web, API, batch) | `pipeline.reconstruct_from_directory` only | ⚠️ Partial | Stable application-service entry + progress contract (§11.3) |
+| **Long-running / observable runs** | No progress, logging, or telemetry contract | ❌ Missing | `ProgressReporter` interface (§11.3) |
+| **Resumable / distributed runs** | No intermediate persistence | ❌ Missing | `ArtifactCache` interface (§11.4) |
+| **Third-party plugins** | No extension entry point | ❌ Missing | `importlib.metadata` entry points (§11.2) |
+
+The **Strategy/Registry/Pipeline** pattern is the right backbone; the missing
+pieces are **cross-cutting interfaces**, not new pipeline stages. Adding them as
+stages would violate the single-responsibility boundary of §9.
+
+### 11.2 Algorithm registration and discovery (new interface)
+
+**Problem.** §10 defines a registry, but no code imports the
+`{algorithm_name}.py` modules, so `registry.resolve(...)` would find an **empty**
+registry at runtime. The scaffolding looks pluggable but is not yet wired. This
+blocks every other layer.
+
+**Design.** Two complementary mechanisms, both feeding `stack/registry.py`:
+
+| Mechanism | For | How |
+| --- | --- | --- |
+| **Built-in bootstrap** | luthier's own modules | `stack.bootstrap.load_builtin_algorithms()` imports each layer's modules and registers them under their `name`. Idempotent; called once by the pipeline. |
+| **Entry-point discovery** | third-party plugins | `stack.bootstrap.load_plugins()` reads `importlib.metadata.entry_points(group="luthier.algorithms")`; each plugin registers its strategies on import. |
+
+```text
+pipeline.run()
+  └─ stack.bootstrap.load_algorithms()      # builtins + plugins, once
+        ├─ load_builtin_algorithms()        # import luthier.{layer}.{name}
+        └─ load_plugins()                   # entry_points("luthier.algorithms")
+  └─ for slot in stack: registry.resolve(layer, slot)   # now non-empty
+```
+
+A registered module is a **Strategy**: a module exposing `name` plus the layer
+protocol method (`discover` / `decode` / `extract` / `reconstruct` / `filter` /
+`write`) structurally satisfies the corresponding `protocols/` interface
+(`runtime_checkable`).
+
+### 11.3 Observability (new interface)
+
+**Problem.** SfM runs take minutes to hours; a web client and CI need progress
+and timing, but the pipeline has no contract for emitting them. Printing to
+stdout (CLI) is an Interface concern and must not leak into the Algorithm layers.
+
+**Design.** A `ProgressReporter` protocol in `protocols/observability.py`, passed
+*into* the pipeline by the Interface layer:
+
+| Method | Purpose |
+| --- | --- |
+| `start(stage, total=None)` | A stage begins (e.g. `features`, with image count) |
+| `advance(stage, n=1)` | Units of work completed |
+| `event(stage, message, **fields)` | Structured log / telemetry point |
+| `finish(stage)` | A stage completed |
+
+The default is a **no-op** reporter (zero overhead, keeps the API unchanged for
+library users). The CLI supplies a console reporter; a web server supplies one
+that pushes to a job-status channel. Algorithm modules receive the reporter via
+the factory `SlotConfig`/run context, never importing the CLI.
+
+### 11.4 Artifact cache (new interface)
+
+**Problem.** Re-running after a failed late stage recomputes features and matches
+from scratch; large runs cannot fit all artifacts in memory or resume. There is
+no place to persist `FeatureSet`, the match graph, or the sparse model.
+
+**Design.** An `ArtifactCache` protocol in `protocols/cache.py`:
+
+| Method | Purpose |
+| --- | --- |
+| `key(stage, inputs)` | Deterministic content key for a stage's output |
+| `get(key)` | Return a cached artifact or `None` |
+| `put(key, artifact)` | Persist an artifact |
+
+The default is a **null cache** (always misses; preserves current behavior). A
+filesystem cache (per-run working directory) enables resume; a shared/object-store
+cache enables distributed workers. Caching is opt-in per stage and never changes
+results — only whether they are recomputed.
+
+### 11.5 Richer run result (extension, not break)
+
+`ReconstructionResult` (§3.5) carries only `point_cloud`, `output_path`,
+`source`. For integration and regression gates at scale it should be extensible
+with an optional **run report** (per-stage timings, registered-image count,
+mean reprojection error, points before/after filtering). This is additive: new
+optional fields, no change to existing consumers. Tracked as a future field;
+not required for M1 PLY output.
+
+### 11.6 Module tree (with cross-cutting scaffolding)
+
+```text
+src/luthier/
+  protocols/
+    io.py  features.py  reconstruction.py  postprocess.py  output.py
+    observability.py          # ProgressReporter (§11.3)
+    cache.py                  # ArtifactCache (§11.4)
+  stack/
+    config.py  registry.py
+    bootstrap.py              # load_builtin_algorithms / load_plugins (§11.2)
+  io/ … features/ … reconstruction/ … postprocess/ … output/   # §9 stages
+```
+
+### 11.7 Decisions
+
+| Concern | Decision | Ref |
+| --- | --- | --- |
+| Plugin registration & discovery | Built-in bootstrap + entry-point group `luthier.algorithms` | AD-09 |
+| Observability | `ProgressReporter` protocol; no-op default; injected by Interface | AD-10 |
+| Artifact cache | `ArtifactCache` protocol; null default; opt-in per stage | AD-11 |
+| Run report | Additive optional fields on `ReconstructionResult` | AD-12 |
+
+Each new package or interface here requires updates to this document,
+`specification.md`, and [testing.md](testing.md) before implementation, per §8.
