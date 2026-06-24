@@ -83,7 +83,7 @@ jobs:
               2>/dev/null | wc -l | tr -d ' '
           )"
           if [ "${IMAGE_COUNT}" -ge 10 ]; then
-            pytest -m acceptance --cov=luthier --cov-report=term-missing
+            pytest -m acceptance
           else
             echo "Golden images not present (${IMAGE_COUNT}/10); skipping acceptance job."
           fi

@@ -181,7 +181,7 @@ pytest --cov=luthier --cov-report=term-missing
 | `mypy` | Detailed design (types) |
 | `pytest` + coverage `fail_under` | Unit + integration tests; **≥ 80%** line coverage (AC-QG-02) |
 | `luthier --help` | AC-CLI-01 smoke |
-| (future) `pytest -m acceptance` | AC-REC-* on golden data |
+| (future) `pytest -m acceptance` | AC-REC-* on golden data (no coverage gate; unit job enforces 80%) |
 
 See [.github/workflows/ci.yml](../.github/workflows/ci.yml).
 
