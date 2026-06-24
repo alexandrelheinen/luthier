@@ -148,13 +148,21 @@ When images are added, remove deselection or add a dedicated CI job.
 
 | Area | Minimum expectation |
 | --- | --- |
+| **Repository total (`luthier`)** | **≥ 80%** line coverage on unit tests (CI gate) |
 | `luthier.cli` | All branches of `validate_args`, `resolve_output_path`, `run` |
 | `luthier.io.images` | Discovery success and empty directory |
 | `luthier.models` | Validation errors on `Point3D`, `LocalImageInput` |
 | `luthier.pipeline` | Not-implemented path; future success path |
 | `luthier.io.pointcloud` | Format guard; full write path when implemented |
 
-CI command:
+**Tune the threshold** in `pyproject.toml`:
+
+```toml
+[tool.coverage.report]
+fail_under = 80   # ← CI unit-test coverage gate (%)
+```
+
+CI command (threshold applied automatically from coverage config):
 
 ```bash
 pytest --cov=luthier --cov-report=term-missing
@@ -169,7 +177,7 @@ pytest --cov=luthier --cov-report=term-missing
 | `black --check` | Coding standard |
 | `ruff check` | Lint / import order |
 | `mypy` | Detailed design (types) |
-| `pytest` | Unit + integration tests |
+| `pytest` + coverage `fail_under` | Unit + integration tests; **≥ 80%** line coverage (AC-QG-02) |
 | `luthier --help` | AC-CLI-01 smoke |
 | (future) `pytest -m acceptance` | AC-REC-* on golden data |
 
