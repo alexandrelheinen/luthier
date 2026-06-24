@@ -1,0 +1,105 @@
+# Luthier algorithm stack — default configuration (M1 target)
+#
+# Select implementations per pipeline slot. Change an `algorithm` value to swap
+# backends without editing pipeline.py. See README § "Pluggable algorithm stack"
+# and docs/architecture.md §10.
+#
+# CLI (planned): luthier --dir ./photos --stack config/stack.yml
+# API (planned):  reconstruct_from_directory(..., stack=load_stack_config(...))
+
+version: 1
+name: m1-sparse-colmap-default
+description: >
+  Sparse Structure-from-Motion with COLMAP/pycolmap defaults, binary PLY output.
+  Matches docs/decisions.md AD-03 and docs/algorithms.md §7.
+
+layers:
+  io:
+    discover:
+      algorithm: pathlib_discover
+      params: {}
+
+    decode:
+      algorithm: opencv_decode
+      params:
+        color_space: rgb
+
+    # Optional; skipped when input is already an image directory
+    video_frames:
+      algorithm: null
+      params: {}
+
+  features:
+    extractor:
+      algorithm: colmap_sift
+      params:
+        max_image_size: 3200
+        max_num_features: 8192
+
+  reconstruction:
+    pair_selection:
+      algorithm: colmap_exhaustive_pairs
+      params:
+        block_size: 50
+
+    matcher:
+      algorithm: colmap_exhaustive_match
+      params:
+        max_ratio: 0.8
+        max_distance: 0.7
+        cross_check: true
+
+    verifier:
+      algorithm: colmap_ransac
+      params:
+        max_error: 4.0
+        min_inlier_ratio: 0.25
+
+    sfm:
+      algorithm: colmap_incremental
+      params:
+        min_num_matches: 15
+
+    bundle_adjustment:
+      algorithm: colmap_bundle_adjustment
+      params:
+        refine_focal_length: true
+        refine_principal_point: false
+        refine_extra_params: true
+
+    triangulation:
+      algorithm: colmap_triangulation
+      params:
+        min_tri_angle_deg: 1.5
+
+    coloring:
+      algorithm: colmap_median_rgb
+      params:
+        min_track_length: 2
+
+    # M2 — leave disabled for sparse M1
+    dense:
+      algorithm: null
+      params: {}
+
+  postprocess:
+    geometric_filter:
+      algorithm: colmap_reprojection_filter
+      params:
+        max_reprojection_error: 4.0
+
+    outliers:
+      algorithm: statistical_outlier_removal
+      params:
+        nb_neighbors: 20
+        std_ratio: 2.0
+
+    radiometry:
+      algorithm: null
+      params: {}
+
+  output:
+    serializer:
+      algorithm: ply_binary_le
+      params:
+        file_format: ply

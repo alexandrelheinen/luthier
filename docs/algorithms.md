@@ -451,9 +451,10 @@ When adding or changing algorithms in luthier:
 
 1. Update this file with the chosen method and rejected alternatives rationale.
 2. Update [decisions.md](decisions.md) if the choice is a project default.
-3. Update [architecture.md §9](architecture.md#9-algorithm-stack) only if layer
+3. Add or switch the entry in [`config/stack.yml`](../config/stack.yml).
+4. Update [architecture.md §9](architecture.md#9-algorithm-stack) only if layer
    **contracts** change (not when swapping SIFT for AKAZE).
-4. Add tests per [testing.md](testing.md) traceability matrix.
+5. Add tests per [testing.md](testing.md) traceability matrix.
 
 **Related documents:** [architecture.md](architecture.md) ·
 [decisions.md](decisions.md) · [specification.md](specification.md) ·
