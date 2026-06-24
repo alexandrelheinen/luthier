@@ -1,0 +1,137 @@
+# Golden acceptance dataset manifest for luthier
+#
+# Public COLMAP benchmark used as the golden set until maintainer-owned photos
+# are added for final validation.
+#
+# Quick start (repository root):
+#   ./scripts/fetch_golden_colmap.sh
+#
+# Related: tests/data/golden/README.md, docs/testing.md
+
+version: 1
+manifest: colmap
+role: golden_acceptance
+status: active
+
+primary:
+  id: south-building
+  name: South Building
+  scene: Exterior facade of the South Building, UNC Chapel Hill (USA)
+  why_this_dataset: >-
+    Classic COLMAP benchmark with 128 photos, single camera, strong overlap,
+    and well-textured architecture. Widely used in SfM papers and COLMAP
+    tutorials; reconstructs reliably with sparse SfM.
+
+  provider:
+    project: COLMAP
+    authors:
+      - name: Christopher Zach
+        role: Image capture
+      - name: Johannes Löwen Schönberger
+        role: Dataset packaging (COLMAP)
+    documentation:
+      - https://colmap.github.io/datasets.html
+      - https://demuc.de/colmap/datasets/
+
+  statistics:
+    image_count: 128
+    image_format: JPEG
+    image_suffix: .JPG
+    archive_size_mb: 234
+    typical_sparse_points: 50000
+    notes: >-
+      Archive includes database.db (COLMAP SQLite reconstruction) as optional
+      reference; luthier acceptance tests use images only.
+
+  license:
+    name: Research use via COLMAP project distribution
+    redistribution: allowed_for_research_and_ci
+    citation: >-
+      COLMAP datasets; images courtesy of Christopher Zach.
+      https://colmap.github.io/datasets.html
+    user_photos_later: >-
+      Maintainer personal photos for final validation will be a separate dataset.
+
+download:
+  colmap_release: "3.11.1"
+  archive_name: south-building.zip
+  primary_url: >-
+    https://github.com/colmap/colmap/releases/download/3.11.1/south-building.zip
+  catalog_page: https://demuc.de/colmap/datasets/
+  mirror_urls:
+    - label: COLMAP datasets index
+      url: https://demuc.de/colmap/datasets/
+    - label: ETH CVG legacy mirror (different zip layout)
+      url: >-
+        https://cvg-data.inf.ethz.ch/local-feature-evaluation-schoenberger2017/South-Building.zip
+      note: Prefer primary_url for this manifest.
+
+archive:
+  format: zip
+  root_directory: south-building
+  paths:
+    images: south-building/images
+    colmap_database: south-building/database.db
+  image_glob: "*.JPG"
+  image_glob_case_sensitive: true
+
+luthier:
+  golden_images_dir: tests/data/golden/images
+  min_images_acceptance: 10
+  min_point_count_ac: 1000
+  acceptance_marker: acceptance
+  specification_refs:
+    - AC-REC-01
+    - AC-REC-02
+    - AC-REC-03
+    - AC-REC-04
+
+subset:
+  recommended_for_ci: true
+  image_count: 20
+  selection: sorted_filename_asc
+  rationale: >-
+    Twenty images exceed the AC-REC minimum (10), preserve overlap, and keep
+    download and CI acceptance runs reasonably fast.
+  explicit_files: null
+
+alternatives:
+  - id: gerrard-hall
+    name: Gerrard Hall
+    image_count: 100
+    url: >-
+      https://github.com/colmap/colmap/releases/download/3.11.1/gerrard-hall.zip
+    archive_root: gerrard-hall
+    images_path: gerrard-hall/images
+    notes: Indoor hall; variable focus per image.
+
+  - id: person-hall
+    name: Person Hall
+    image_count: 330
+    url: >-
+      https://github.com/colmap/colmap/releases/download/3.11.1/person-hall.zip
+    multipart: true
+    parts:
+      - https://github.com/colmap/colmap/releases/download/3.11.1/person-hall.zip
+      - https://github.com/colmap/colmap/releases/download/3.11.1/person-hall.z01
+    notes: Larger multi-part archive.
+
+fetch:
+  script: scripts/fetch_golden_colmap.sh
+  requirements:
+    tools:
+      - curl
+      - unzip
+      - find
+      - sort
+      - head
+
+validation:
+  - "tests/data/golden/images/ contains >= 10 .JPG files"
+  - "pytest -m acceptance collects tests (xfail/skip until M1 pipeline is done)"
+  - "Optional: inspect output PLY in CloudCompare"
+
+viewer:
+  recommended: CloudCompare
+  url: https://www.cloudcompare.org/
+  output_format: binary_ply

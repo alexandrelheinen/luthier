@@ -205,3 +205,7 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Golden dataset images (downloaded; see tests/data/golden/colmap.yml)
+tests/data/golden/images/*
+!tests/data/golden/images/.gitkeep
