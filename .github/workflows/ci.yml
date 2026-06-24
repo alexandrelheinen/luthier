@@ -76,8 +76,14 @@ jobs:
 
       - name: Run acceptance tests when golden data is present
         run: |
-          if [ -d tests/data/golden/images ] && [ "$(ls -A tests/data/golden/images 2>/dev/null)" ]; then
+          IMAGE_COUNT="$(
+            find tests/data/golden/images -maxdepth 1 -type f \
+              \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \
+                 -o -iname '*.tif' -o -iname '*.tiff' -o -iname '*.bmp' \) \
+              2>/dev/null | wc -l | tr -d ' '
+          )"
+          if [ "${IMAGE_COUNT}" -ge 10 ]; then
             pytest -m acceptance --cov=luthier --cov-report=term-missing
           else
-            echo "Golden images not present; skipping acceptance job."
+            echo "Golden images not present (${IMAGE_COUNT}/10); skipping acceptance job."
           fi

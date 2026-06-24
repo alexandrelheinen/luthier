@@ -62,7 +62,7 @@ echo "Extracting JPEG images..."
 unzip -q "${TMP_DIR}/south-building.zip" "south-building/images/*.JPG" -d "${TMP_DIR}"
 
 mkdir -p "${IMAGES_DIR}"
-find "${IMAGES_DIR}" -mindepth 1 -delete
+find "${IMAGES_DIR}" -mindepth 1 -type f ! -name '.gitkeep' -delete
 
 if [[ "${USE_ALL}" == true ]]; then
   echo "Installing all images into ${IMAGES_DIR}..."

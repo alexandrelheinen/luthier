@@ -139,11 +139,10 @@ The golden `README.md` must state:
 
 ### 7.3 Until golden data exists
 
-`tests/test_acceptance.py` uses `@pytest.mark.acceptance` and
-`pytest.importorskip` or `skipif` when `tests/data/golden/images` is absent.
-CI runs acceptance tests in **deselected** mode by default (`addopts -m "not acceptance"`).
-
-When images are added, remove deselection or add a dedicated CI job.
+`tests/test_acceptance.py` skips when fewer than 10 supported images are in
+`tests/data/golden/images/`. The `.gitkeep` placeholder alone does **not** count
+as golden data. When images are present but M1 is not implemented, acceptance
+tests **xfail** (expected failure) instead of failing CI.
 
 ---
 
