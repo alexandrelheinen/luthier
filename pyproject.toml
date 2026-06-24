@@ -27,6 +27,7 @@ classifiers = [
 Homepage = "https://github.com/alexandrelheinen/luthier"
 Repository = "https://github.com/alexandrelheinen/luthier"
 Issues = "https://github.com/alexandrelheinen/luthier/issues"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.3",
