@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from luthier.exceptions import NotImplementedPipelineError
 from luthier.models import PointCloud
 
 POINT_CLOUD_FORMAT_PLY = "ply"
@@ -24,12 +23,13 @@ def write_point_cloud(
 
     Raises:
         ValueError: If ``file_format`` is not supported.
-        NotImplementedPipelineError: Until serialization is implemented.
     """
     if file_format != POINT_CLOUD_FORMAT_PLY:
         msg = f"Unsupported point cloud format: {file_format}"
         raise ValueError(msg)
-    raise NotImplementedPipelineError(
-        "Point cloud serialization is not implemented yet. "
-        "See docs/specification.md and docs/testing.md."
-    )
+
+    from luthier.output.ply_binary_le import write as write_ply_binary_le
+
+    resolved = output_path.expanduser().resolve()
+    write_ply_binary_le(point_cloud, resolved)
+    return resolved
