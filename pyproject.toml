@@ -31,6 +31,7 @@ Issues = "https://github.com/alexandrelheinen/luthier/issues"
 dev = [
     "pytest>=8.3",
     "pytest-cov>=6.0",
+    "black>=24.10",
 ]
 
 [tool.pytest.ini_options]
@@ -38,3 +39,7 @@ minversion = "8.0"
 testpaths = ["tests"]
 addopts = ["-ra", "--strict-markers", "--strict-config"]
 pythonpath = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ["py310"]
