@@ -51,10 +51,30 @@ implements the left side of the V-cycle (system design + architecture) for
 | **Interface** | `cli`, `__main__` | Argument parsing, stdout/stderr, exit codes |
 | **Application** | `pipeline` | Orchestrate reconstruction end-to-end |
 | **Domain** | `models`, `exceptions` | Typed data and error taxonomy |
+| **Adapters** | `sfm.colmap` (M1) | Wrap **pycolmap**; map errors to `ReconstructionError` |
 | **Infrastructure** | `io.images`, `io.pointcloud` | Filesystem and serialization |
 
-Future stages (`features`, `sfm`, `mvs`) sit between **Application** and
-**Infrastructure**, consuming images and producing `PointCloud`.
+Algorithm stages (`features`, matching, incremental SfM) live **inside pycolmap**;
+luthier exposes them through `sfm.colmap` and tests the adapter + pipeline contract.
+
+---
+
+## 2.1 Third-party blocks (M1)
+
+See [decisions.md](decisions.md) AD-03. Summary:
+
+```text
+discover_images          pycolmap incremental_mapping      write_point_cloud
+     (stdlib)      →         (SfM backend)            →         (stdlib struct)
+  io.images                 sfm.colmap                    io.pointcloud
+```
+
+| Block | Library | luthier wrapper |
+| --- | --- | --- |
+| Image paths | stdlib | `io.images.discover_images` |
+| Sparse SfM | pycolmap | `sfm.colmap.run_sparse_reconstruction` (planned) |
+| PLY export | stdlib `struct` | `io.pointcloud.write_point_cloud` |
+| Arrays | numpy | Convert pycolmap output → `PointCloud` |
 
 ---
 
@@ -148,7 +168,7 @@ remote sources to a cache directory first).
 
 ---
 
-## 8. Future module tree
+## 8. Module tree (M1 target)
 
 ```text
 src/luthier/
@@ -162,8 +182,9 @@ src/luthier/
     __init__.py
     images.py
     pointcloud.py
-  features/          # future
-  sfm/               # future
+  sfm/               # M1
+    __init__.py
+    colmap.py        # pycolmap adapter
 ```
 
 Each new package requires updates to this document, `specification.md`, and

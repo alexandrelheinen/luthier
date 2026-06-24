@@ -298,6 +298,7 @@ Criteria are verified by automated tests described in [testing.md](testing.md).
 ### 10.5 Quality gates (repository)
 
 - **AC-QG-01:** `black --check`, `ruff check`, `mypy`, and `pytest` shall pass on all supported Python versions in CI.
+- **AC-QG-02:** When CI runs unit tests with coverage, total line coverage of `luthier` shall be **≥ 80%** (threshold in `pyproject.toml` → `[tool.coverage.report]` `fail_under`).
 
 ---
 
@@ -313,16 +314,19 @@ Criteria are verified by automated tests described in [testing.md](testing.md).
 
 ---
 
-## 12. Dependencies (planned, not yet added)
+## 12. Dependencies (M1 — approved)
 
-Runtime dependencies will be introduced in the implementation milestone PR with
-justification. Expected candidates:
+Resolved in [decisions.md](decisions.md) (AD-03, AD-04). Introduced in the M1
+implementation PR:
 
-| Package | Purpose |
-| --- | --- |
-| `numpy` | Point arrays, linear algebra |
-| `opencv-python-headless` or `opencv-python` | Features, images |
-| Optional: `pycolmap` or COLMAP binary | SfM backend |
+| Package | Purpose | Owner block |
+| --- | --- | --- |
+| `numpy` | Point arrays, pycolmap interop | `io.pointcloud`, `sfm` |
+| `pycolmap` | Feature extraction, matching, incremental SfM | `sfm.colmap` |
+| `opencv-python-headless` | Image metadata / validation helpers | `io.images` |
+
+Install: `pip install luthier` (dependencies in `[project.dependencies]`) or
+`pip install -e ".[reconstruction]"` during development if optional extra is used.
 
 ---
 
@@ -331,14 +335,26 @@ justification. Expected candidates:
 | Version | Date | Change |
 | --- | --- | --- |
 | 0.2.0 | 2026-06-24 | Initial photogrammetry specification; local `--dir` input; PLY output; CloudCompare viewer; CLI and API stubs |
+| 0.3.0 | 2026-06-24 | Step 1 decisions closed; pycolmap backend; 80% unit-test coverage gate — see [decisions.md](decisions.md) |
 
 ---
 
-## 14. Open decisions (for maintainer)
+## 14. Decisions (resolved — Step 1)
 
-| ID | Question | Default if silent |
+Full rationale in [decisions.md](decisions.md).
+
+| ID | Topic | Resolution |
 | --- | --- | --- |
-| OD-01 | Minimum image count for reconstruction | 2 (warn), 10 for golden acceptance set |
-| OD-02 | Recursive subdirectory scan | No in v0.2.0 |
-| OD-03 | SfM backend (pure Python vs COLMAP) | Decided at M1 implementation PR |
-| OD-04 | Second input source shape | New spec section when chosen |
+| AD-01 | Minimum image count | 2 for reconstruction; ≥ 10 for golden acceptance |
+| AD-02 | Recursive `--dir` scan | No in M1 |
+| AD-03 | SfM backend | **pycolmap** (COLMAP bindings); luthier orchestrates |
+| AD-04 | Runtime dependencies | `numpy`, `pycolmap`, `opencv-python-headless` |
+| AD-05 | Viewer | External CloudCompare; binary PLY output |
+| AD-06 | Unit test coverage | **80%** minimum on `src/luthier` (CI enforced) |
+| AD-07 | Second input source | Deferred |
+
+### Still open
+
+| ID | Question | When |
+| --- | --- | --- |
+| OD-04b | Shape of second input (`--url`, `--manifest`, …) | Before M3 spec |
