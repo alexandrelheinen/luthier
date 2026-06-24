@@ -4,22 +4,32 @@ build-backend = "hatchling.build"
 
 [project]
 name = "luthier"
-version = "0.1.0"
-description = "Luthier Python library."
+version = "0.2.0"
+description = "Photogrammetry library: reconstruct 3D point clouds from photographs."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
 authors = [{ name = "Alexandre Loeblein Heinen" }]
-keywords = ["luthier"]
+keywords = [
+    "photogrammetry",
+    "3d-reconstruction",
+    "point-cloud",
+    "structure-from-motion",
+    "sfm",
+    "luthier",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+    "Topic :: Multimedia :: Graphics :: 3D Modeling",
     "Typing :: Typed",
 ]
 
@@ -27,6 +37,10 @@ classifiers = [
 Homepage = "https://github.com/alexandrelheinen/luthier"
 Repository = "https://github.com/alexandrelheinen/luthier"
 Issues = "https://github.com/alexandrelheinen/luthier/issues"
+Documentation = "https://github.com/alexandrelheinen/luthier#readme"
+
+[project.scripts]
+luthier = "luthier.cli:main"
 
 [project.optional-dependencies]
 dev = [
@@ -36,12 +50,27 @@ dev = [
     "ruff>=0.8",
     "mypy>=1.13",
 ]
+# Planned for reconstruction milestone M1 (not installed by default):
+# reconstruction = ["numpy>=2.0", "opencv-python-headless>=4.10"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/luthier"]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]
-addopts = ["-ra", "--strict-markers", "--strict-config"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "-m",
+    "not acceptance",
+]
 pythonpath = ["src"]
+markers = [
+    "acceptance: end-to-end tests requiring tests/data/golden/images (deselected in default CI)",
+    "not_implemented: specifies behavior for a future implementation milestone",
+]
 
 [tool.black]
 line-length = 88
@@ -61,5 +90,13 @@ known-first-party = ["luthier"]
 [tool.mypy]
 python_version = "3.10"
 strict = true
-packages = ["luthier"]
+packages = ["luthier", "tests"]
 mypy_path = "src"
+
+[tool.coverage.run]
+branch = true
+source = ["luthier"]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true

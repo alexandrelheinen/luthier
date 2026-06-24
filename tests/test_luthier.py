@@ -1,11 +1,13 @@
-"""Tests for the luthier package."""
+"""Package metadata tests."""
 
-from luthier import __version__, hello
-
-
-def test_hello() -> None:
-    assert hello() == "Hello from luthier!"
+from luthier import __version__, reconstruct_from_directory
 
 
-def test_version() -> None:
-    assert __version__ == "0.1.0"
+def test_version_is_semver_like() -> None:
+    parts = __version__.split(".")
+    assert len(parts) == 3
+    assert all(part.isdigit() for part in parts)
+
+
+def test_public_api_exports_reconstruct() -> None:
+    assert callable(reconstruct_from_directory)
