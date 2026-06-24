@@ -8,13 +8,16 @@ This document is the single source of truth for how humans and AI agents contrib
 2. [Spec-driven development (SDD)](#spec-driven-development-sdd)
 3. [Software development lifecycle (V-cycle)](#software-development-lifecycle-v-cycle)
 4. [Combining SDD, V-cycle, and TDD](#combining-sdd-v-cycle-and-tdd)
-5. [Unitary commits](#unitary-commits)
-6. [Quality gates](#quality-gates)
-7. [Pull request workflow](#pull-request-workflow)
-8. [Code principles](#code-principles)
-9. [Rules for AI agents](#rules-for-ai-agents)
-10. [Reference documents](#reference-documents)
-11. [Pre-merge checklist](#pre-merge-checklist)
+5. [Requirement traceability](#requirement-traceability)
+6. [Unitary commits](#unitary-commits)
+7. [Quality gates](#quality-gates)
+8. [Method enforcement (CI/CD)](#method-enforcement-cicd)
+9. [Definition of Ready and Definition of Done](#definition-of-ready-and-definition-of-done)
+10. [Pull request workflow](#pull-request-workflow)
+11. [Code principles](#code-principles)
+12. [Rules for AI agents](#rules-for-ai-agents)
+13. [Reference documents](#reference-documents)
+14. [Pre-merge checklist](#pre-merge-checklist)
 
 ## Development setup
 
@@ -159,6 +162,49 @@ Stop and update the spec (step 1) when:
 - Integration tests reveal a requirement that was never specified.
 - Scope grows beyond the original issue—split work or amend the spec explicitly.
 
+## Requirement traceability
+
+Every requirement must be **traceable in both directions**: from an acceptance
+criterion down to the test that proves it, and from any test back up to the
+criterion it verifies. This closes the gap the V-cycle assumes but does not by
+itself guarantee — that no left-side requirement is silently dropped on the
+right side.
+
+### Acceptance-criteria identifiers
+
+- Acceptance criteria live in [docs/specification.md §10](docs/specification.md)
+  and use stable identifiers: `AC-<AREA>-<NN>` (for example `AC-CLI-02`,
+  `AC-REC-01`, `AC-QG-02`).
+- Identifiers are **append-only**. Never renumber or reuse a retired id; mark it
+  removed in the specification change log instead.
+
+### How to trace
+
+| Direction | Where the link lives | Form |
+| --- | --- | --- |
+| Criterion → verification | Test docstring or test id, **or** the traceability table in [docs/testing.md §3](docs/testing.md) | `"""AC-CLI-02."""` in the test, or a row in the matrix |
+| Verification → criterion | Same | The `AC-*` token referenced by the test or row |
+| Quality-gate criteria (`AC-QG-*`) | [docs/testing.md §9 CI mapping](docs/testing.md) | A CI step is the verification, mapped in the table |
+
+**Rule:** every `AC-*` defined in the specification must be referenced by at
+least one test file or by `docs/testing.md`. A criterion with no verification is
+an incomplete spec, not "future work" — either add the (possibly `xfail`) test or
+remove the criterion from the spec. This is enforced automatically; see
+[Method enforcement](#method-enforcement-cicd).
+
+### No silent skips
+
+Tests are the executable right side of the V-cycle. They must not be quietly
+disabled:
+
+- `@pytest.mark.skip` / `skipif` and `xfail` are allowed **only** with a
+  `reason=` that names the blocking `AC-*` id or a tracking note (for example a
+  milestone such as M1, or an environmental precondition such as missing golden
+  images). Markers are validated with `--strict-markers` / `--strict-config`.
+- Do not lower or remove a quality gate (coverage `fail_under`, lint rule
+  selection, the Python matrix) to make a change pass. Changing a gate requires a
+  matching update to [docs/decisions.md](docs/decisions.md) and a note in the PR.
+
 ## Unitary commits
 
 **Each logical step is one commit.** A PR may contain many commits; that is expected and preferred over squashing unrelated work.
@@ -181,6 +227,26 @@ Examples of **separate** commits:
 - `docs: add CONTRIBUTING.md`
 
 Do **not** combine unrelated changes in one commit (e.g. formatting + feature + CI in a single commit).
+
+### Commit message convention (enforced)
+
+Subjects follow **[Conventional Commits](https://www.conventionalcommits.org/)**
+so history is machine-parseable and the unitary-commit rule is checkable:
+
+```text
+<type>(<optional scope>): <imperative summary>
+```
+
+| Rule | Value |
+| --- | --- |
+| Allowed `type` | `feat`, `fix`, `docs`, `test`, `refactor`, `perf`, `build`, `ci`, `chore`, `style`, `revert` |
+| Subject length | ≤ 72 characters; imperative mood; no trailing period |
+| Body (optional) | Blank line, then *why* and context; wrap at ~72 columns |
+| Breaking change | `!` after type/scope (e.g. `feat!:`) or a `BREAKING CHANGE:` body footer |
+
+Branch names follow `<type>/<slug>` (for example `feat/add-parser`,
+`ci/governance-job`). Both the subject convention and branch prefix are validated
+in CI on pull requests; see [Method enforcement](#method-enforcement-cicd).
 
 ### Git safety (humans and agents)
 
@@ -207,6 +273,79 @@ CI enforces the following on every push to `main` and on every pull request:
 All checks must pass on all supported Python versions in the CI matrix before merge.
 
 Configuration lives in `pyproject.toml`. Do not add duplicate tool config in standalone files unless a maintainer approves an exception.
+
+## Method enforcement (CI/CD)
+
+A method that is only documented is a suggestion. In this repository the method
+is **mechanically enforced**: the same checks run for a human and for any AI
+agent, and they cannot be skipped to land a change. CI is the gate, not a
+courtesy.
+
+### Enforcement matrix
+
+Each methodology rule maps to an automated check and the CI job that runs it.
+"No skip allowed" means the job is **required** and failing it blocks merge.
+
+| Method rule (this document) | Automated check | CI job / step |
+| --- | --- | --- |
+| PEP 8 formatting | `black --check src tests` | `quality` |
+| Lint, imports, bugs | `ruff check src tests` | `quality` |
+| Typed detailed design | `mypy` (strict) | `quality` |
+| Unit + integration tests pass | `pytest` (strict markers/config) | `quality` |
+| Coverage ≥ threshold (AC-QG-02) | `pytest --cov` + `fail_under` | `quality` |
+| All supported Pythons (AC-QG-01) | `quality` matrix `3.10–3.13` | `quality` |
+| SDD artifacts exist | presence checks for `docs/*.md`, `README.md` | `governance` |
+| Single constitution (no duplicate guideline files) | guard against `AGENTS.md`, `.cursor/rules/`, `CLAUDE.md`, `.github/copilot-instructions.md` | `governance` |
+| Requirement traceability (every `AC-*` verified) | `scripts/check_governance.py` | `governance` |
+| Stack ↔ code consistency (`{algorithm_name}.py` matches `name` and is documented) | `scripts/check_governance.py` | `governance` |
+| Conventional, unitary commits | commit-subject lint over the PR commit range | `governance` (PR only) |
+| Branch naming `<type>/<slug>` | branch-name check | `governance` (PR only) |
+| PR has Summary + Test plan | PR-body check | `governance` (PR only) |
+| Acceptance criteria on golden data | `pytest -m acceptance` when golden images present | `acceptance` (PR only) |
+
+The authoritative implementation is [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+and the reusable script [`scripts/check_governance.py`](scripts/check_governance.py).
+Run the governance script locally before pushing:
+
+```bash
+python scripts/check_governance.py
+```
+
+### Rules
+
+- Do **not** weaken, comment out, or `continue-on-error` a required check to make
+  CI green. Fix the change, not the gate.
+- Required checks must remain required. Removing a gate is itself a spec change
+  (update `docs/decisions.md` and explain it in the PR).
+- New layers, slots, or algorithm modules must keep the governance checks green
+  (matching files, names, and documentation) — see
+  [docs/architecture.md §10.3](docs/architecture.md#103-adding-a-new-algorithm).
+
+## Definition of Ready and Definition of Done
+
+These bound when work may **start** and when it may **merge**. They make the
+SDD → V-cycle → TDD flow checkable rather than aspirational.
+
+### Definition of Ready (before coding)
+
+- [ ] Intent, scope, and **acceptance criteria** are written (issue or PR), each
+      with an `AC-*` id where it asserts observable behavior.
+- [ ] Rigor level chosen (spec-first / spec-anchored / spec-as-source) per
+      [SDD rigor levels](#rigor-levels).
+- [ ] Test levels identified for each criterion (unit / integration / acceptance).
+- [ ] No undocumented new runtime dependency or public-API break.
+
+### Definition of Done (before merge)
+
+- [ ] Every touched or added `AC-*` is verified by a test or `docs/testing.md`
+      mapping (traceability check passes).
+- [ ] Unitary, Conventional commits; branch named `<type>/<slug>`.
+- [ ] All required CI jobs green (`quality`, `governance`, and `acceptance` when
+      applicable) on the full Python matrix.
+- [ ] Docs updated when behavior, architecture, or the algorithm stack changed
+      (`specification.md`, `architecture.md`, `testing.md`, `decisions.md`,
+      `algorithms.md`, `README.md` as relevant).
+- [ ] No quality gate weakened to pass.
 
 ## Pull request workflow
 
@@ -323,12 +462,15 @@ Every contributor (human or agent) must confirm before merge:
 
 - [ ] Spec is clear: intent, scope, and acceptance criteria are written and addressed.
 - [ ] Changes follow SDD → V-cycle → TDD (spec, design/tests at each level, TDD for units).
-- [ ] **Unitary commits** — each commit is a single logical step.
+- [ ] Every touched `AC-*` is traceable to a test or `docs/testing.md` mapping.
+- [ ] **Unitary, Conventional commits** — each commit is a single logical step; branch is `<type>/<slug>`.
 - [ ] `black --check src tests` passes.
 - [ ] `ruff check src tests` passes.
 - [ ] `mypy` passes.
 - [ ] `pytest` passes with coverage for touched code.
-- [ ] CI is green on all matrix Python versions.
+- [ ] `python scripts/check_governance.py` passes.
+- [ ] CI is green on all matrix Python versions (`quality`, `governance`, and `acceptance` when applicable).
+- [ ] No quality gate was weakened to pass.
 - [ ] No secrets, credentials, or generated junk committed.
 - [ ] Public API changes are typed and documented if user-facing.
 - [ ] PR has summary and test plan.
