@@ -1,6 +1,6 @@
 """Tests for the luthier package."""
 
-from luthier import hello, __version__
+from luthier import __version__, hello
 
 
 def test_hello() -> None:
