@@ -37,7 +37,7 @@ a production SfM/MVS system.
 | **AliceVision / Meshroom** | AliceVision (INRIA, etc.) | IO → features → SfM → MVS → mesh | [AliceVision overview](https://alicevision.org/) | [alicevision/AliceVision](https://github.com/alicevision/AliceVision); [alicevision/Meshroom](https://github.com/alicevision/Meshroom) | INRIA-backed; node-graph UI; production node-based CLI | Large dependency tree; less “library-first” than pycolmap |
 | **OpenSfM** | Mapillary (Meta) | Features → incremental SfM | [Mapillary OpenSfM docs](https://opensfm.org/docs/) | [mapillary/OpenSfM](https://github.com/mapillary/OpenSfM) | Python-native; map/GPS priors; good for street-scale | Less maintained post-Mapillary; weaker dense MVS than COLMAP |
 | **TheiaSfM** | Google / community | Global SfM, BA | [Wilson & Snavely, 2014](https://doi.org/10.1007/s11263-013-0721-3) | [sweeneychris/TheiaSfM](https://github.com/sweeneychris/TheiaSfM) | Clean C++ API; strong global solvers; Ceres integration | Smaller community; sparse only |
-| **hloc** | ETH Zurich | Learned features + matching + COLMAP export | [Sarlin et al., 2019](https://doi.org/10.1109/CVPR.2019.00211); [Sarlin et al., 2020](https://doi.org/10.1109/CVPR.2020.00041) | [cvg/Hierarchical-Localization](https://github.com/cvg/Hierarchical-Localization) | SOTA localization & challenging pairs; COLMAP-compatible export | PyTorch GPU; research code layout; ops overhead |
+| **hloc** | ETH Zurich | Learned features + matching + COLMAP export | [Sarlin et al., 2019](https://doi.org/10.1109/CVPR.2019.00211); [Sarlin et al., 2020](https://arxiv.org/abs/1911.11763) | [cvg/Hierarchical-Localization](https://github.com/cvg/Hierarchical-Localization) | SOTA localization & challenging pairs; COLMAP-compatible export | PyTorch GPU; research code layout; ops overhead |
 | **GLOMAP** | ETH Zurich | Fast global SfM (COLMAP successor path) | [Pan et al., 2024](https://arxiv.org/abs/2408.16293) | [colmap/glomap](https://github.com/colmap/glomap) | Orders-of-magnitude faster global mapping; COLMAP ecosystem | Newer; dense/color still via COLMAP |
 | **nerfstudio / COLMAP export** | Berkeley | SfM front-end for NeRF | [Tancik et al., 2023](https://doi.org/10.1145/3588432.3591516) | [nerfstudio-project/nerfstudio](https://github.com/nerfstudio-project/nerfstudio) | Modern NVS workflows | Overkill for point-cloud PLY product |
 
@@ -71,7 +71,7 @@ Maps to [architecture §9.3.1](architecture.md#931-io-layer--input-preparation).
 
 | Approach | Reference | Packages | Pros | Cons |
 | --- | --- | --- | --- | --- |
-| **EXIF focal length & sensor** | [JEITA EXIF 2.32](https://www.cipa.jp/std/documents/e/DC-008-Translation-2019-E.pdf) | [exifread/exifread](https://github.com/ExifTool/exifread); [ExifTool](https://exiftool.org/) | Initial camera intrinsics prior for SfM | Missing/wrong EXIF common on phones |
+| **EXIF focal length & sensor** | [JEITA EXIF 2.32](https://www.cipa.jp/std/documents/e/DC-008-Translation-2019-E.pdf) | [ianare/exif-py](https://github.com/ianare/exif-py); [ExifTool](https://exiftool.org/) | Initial camera intrinsics prior for SfM | Missing/wrong EXIF common on phones |
 | **OpenCV Photo metadata** | OpenCV docs | [opencv/opencv](https://github.com/opencv/opencv) | Same stack as decode | Limited vs ExifTool |
 
 ### 1.4 Radiometric preprocessing (optional IO)
@@ -79,7 +79,7 @@ Maps to [architecture §9.3.1](architecture.md#931-io-layer--input-preparation).
 | Approach | Reference | Packages | Pros | Cons |
 | --- | --- | --- | --- | --- |
 | **Histogram equalization / CLAHE** | [Pizer et al., 1987](https://doi.org/10.1109/TMI.1987.634387) | OpenCV `createCLAHE` | Helps feature detection on flat lighting | Can break color fidelity |
-| **Vignetting correction** | [Goldman, 2010](https://doi.org/10.1109/CVPR.2010.5539970) | OpenCV; custom | Consistent appearance across frame | Needs calibration or EXIF |
+| **Vignetting correction** | [Goldman, 2010 (TPAMI)](https://doi.org/10.1109/TPAMI.2010.55) | OpenCV; custom | Consistent appearance across frame | Needs calibration or EXIF |
 | **Undistortion (pre-SfM)** | Brown–Conrady model | OpenCV `undistort`; COLMAP internally | Straight lines for detectors | Usually deferred to SfM intrinsics estimation |
 
 ### 1.5 Video → frame `ImageSet` (future)
@@ -114,10 +114,10 @@ Maps to [architecture §9.3.2](architecture.md#932-feature-extraction-layer).
 | **SIFT** | [Lowe, 2004](https://doi.org/10.1109/CVPR.2004.1285544) | 128 | OpenCV (patent-free since 2020); [vlfeat/vlfeat](https://github.com/vlfeat/vlfeat) | Gold standard accuracy; scale invariant | Slower; patented history |
 | **SURF** | [Bay et al., 2008](https://doi.org/10.1016/j.cviu.2007.09.003) | 64/128 | OpenCV; VLFeat | Faster than SIFT | Weak on weak texture |
 | **ORB** | [Rublee et al., 2011](https://doi.org/10.1109/ICCV.2011.6126544) | 32 (binary) | OpenCV | Very fast; free | Less discriminative; more outliers |
-| **AKAZE** | [Alcantarilla et al., 2013](https://doi.org/10.1007/s11263-012-0590-3) | 61 (MLDB) | OpenCV; [alcantara/akaze](https://github.com/alcantara/akaze) | Good speed/quality | Tuning-sensitive |
+| **AKAZE** | [Alcantarilla et al., 2013](https://doi.org/10.1007/s11263-012-0590-3) | 61 (MLDB) | OpenCV; [pablofdezalc/akaze](https://github.com/pablofdezalc/akaze) | Good speed/quality | Tuning-sensitive |
 | **BRISK** | [Leutenegger et al., 2011](https://doi.org/10.1109/ICCV.2011.6126638) | 512-bit | OpenCV | Fast binary | Lower precision than SIFT |
 | **KAZE / AKAZE family** | Nonlinear scale space | — | OpenCV | Strong on blur | Heavier compute |
-| **DAISY** | [Tola et al., 2010](https://doi.org/10.1109/CVPR.2010.5539971) | variable | OpenCV | Dense-friendly | Less common in SfM |
+| **DAISY** | [Tola et al., 2010 (TPAMI)](https://doi.org/10.1109/TPAMI.2009.77) | variable | OpenCV | Dense-friendly | Less common in SfM |
 | **RootSIFT** | [Arandjelović & Zisserman, 2012](https://doi.org/10.1109/CVPR.2012.6248018) | 128 | OpenCV (normalize SIFT) | Big matcher boost | Still need SIFT |
 | **FREAK** | [Alahi et al., 2012](https://doi.org/10.1109/CVPR.2012.6247916) | 512-bit | OpenCV | Fast retina-inspired | Superseded by learned |
 | **BRIEF / CMT etc.** | [Calonder et al., 2010](https://doi.org/10.1109/CVPR.2010.5539973) | binary | OpenCV | Minimal | Weak for wide baseline |
@@ -130,16 +130,16 @@ Maps to [architecture §9.3.2](architecture.md#932-feature-extraction-layer).
 | --- | --- | --- | --- | --- |
 | **Hessian-Affine + SIFT** | [Mikolajczyk & Schmid, 2004](https://doi.org/10.1109/CVPR.2004.1285546) | VLFeat; COLMAP | Handles strong viewpoint change | Slow |
 | **SIFT++ / DSP-SIFT** | [Dong & Soatto, 2015](https://doi.org/10.1109/CVPR.2015.7298993) | Research code | Better repeatability | Not in default COLMAP |
-| **Key.Net** | [Barroso-Laguna et al., 2019](https://doi.org/10.1109/CVPR.2019.00212) | [IBensasso/Key.Net](https://github.com/IBensasso/Key.Net) | Learned covariant | GPU; training domain bias |
+| **Key.Net** | [Barroso-Laguna et al., 2019 (ICCV)](https://arxiv.org/abs/1904.00889) | [axelBarroso/Key.Net](https://github.com/axelBarroso/Key.Net) | Learned covariant | GPU; training domain bias |
 
 ### 2.3 Learned local features (GPU)
 
 | Method | Reference | Packages | Pros | Cons |
 | --- | --- | --- | --- | --- |
 | **SuperPoint** | [DeTone et al., 2018](https://arxiv.org/abs/1712.07684) | [magicleap/SuperPointPretrainedNetwork](https://github.com/magicleap/SuperPointPretrainedNetwork); hloc | Repeatable; homography-friendly | GPU; domain shift outdoors |
-| **R2D2** | [Revaud et al., 2019](https://doi.org/10.1109/CVPR.2019.00212) | [naver/r2d2](https://github.com/naver/r2d2) | Reliable detectors | Heavy |
-| **DISK** | [Tyszkiewicz et al., 2020](https://doi.org/10.1109/CVPR.2020.00041) | [cvlab-epfl/disk](https://github.com/cvlab-epfl/disk); kornia | Strong accuracy | GPU |
-| **ALIKED** | [Zhang et al., 2023](https://doi.org/10.1109/CVPR.2023.06089) | [Shiaoming/ALIKED](https://github.com/Shiaoming/ALIKED) | Fast learned; good efficiency | Newer |
+| **R2D2** | [Revaud et al., 2019 (NeurIPS)](https://arxiv.org/abs/1906.06195) | [naver/r2d2](https://github.com/naver/r2d2) | Reliable detectors | Heavy |
+| **DISK** | [Tyszkiewicz et al., 2020 (NeurIPS)](https://arxiv.org/abs/2006.13566) | [cvlab-epfl/disk](https://github.com/cvlab-epfl/disk); kornia | Strong accuracy | GPU |
+| **ALIKED** | [Zhang et al., 2023 (IEEE TIM)](https://arxiv.org/abs/2304.03608) | [Shiaoming/ALIKED](https://github.com/Shiaoming/ALIKED) | Fast learned; good efficiency | Newer |
 | **XFeat** | [Potje et al., 2024](https://arxiv.org/abs/2404.19174) | [verlab/accelerated_features](https://github.com/verlab/accelerated_features) | Real-time; CPU-friendly learned | Less tested vs COLMAP defaults |
 | **SIFT + LightGlue (detector-free pairing)** | Uses SuperPoint etc. | hloc | End-to-end tuned | Torch stack |
 
@@ -193,10 +193,10 @@ Avoids O(N²) matching on large sets.
 | **Mutual nearest neighbor** | Common practice | COLMAP | Reduces false matches | Still many outliers |
 | **Lowe ratio test** | [Lowe, 2004](https://doi.org/10.1109/CVPR.2004.1285544) | COLMAP; OpenCV | Classic filter | Fixed threshold fragile |
 | **Cross-check + symmetric** | — | OpenCV | Easy win | — |
-| **SuperGlue** | [Sarlin et al., 2020](https://doi.org/10.1109/CVPR.2020.00041) | [magicleap/SuperGluePretrainedNetwork](https://github.com/magicleap/SuperGluePretrainedNetwork); hloc | Learned graph matcher; handles weak texture | GPU; slower than ratio test |
+| **SuperGlue** | [Sarlin et al., 2020](https://arxiv.org/abs/1911.11763) | [magicleap/SuperGluePretrainedNetwork](https://github.com/magicleap/SuperGluePretrainedNetwork); hloc | Learned graph matcher; handles weak texture | GPU; slower than ratio test |
 | **LightGlue** | [Lindenberger et al., 2023](https://doi.org/10.1109/ICCV.2023.00837) | [cvg/LightGlue](https://github.com/cvg/LightGlue) | Faster than SuperGlue; adaptive depth | GPU |
 | **LoFTR** | [Sun et al., 2021](https://doi.org/10.1109/CVPR.2021.00947) | [zju3dv/LoFTR](https://github.com/zju3dv/LoFTR) | Detector-free; good on textureless | Dense matches; memory |
-| **MASt3R / DUSt3R** | [Leroy et al., 2024](https://arxiv.org/abs/2312.14132) | [naver/dust3r](https://github.com/naver/dust3r) | Direct 3D-oriented matching | Different pipeline paradigm |
+| **DUSt3R / MASt3R** | [Wang et al., 2023 (DUSt3R)](https://arxiv.org/abs/2312.14132); [Leroy et al., 2024 (MASt3R)](https://arxiv.org/abs/2406.09756) | [naver/dust3r](https://github.com/naver/dust3r); [naver/mast3r](https://github.com/naver/mast3r) | Direct 3D-oriented matching | Different pipeline paradigm |
 | **COLMAP guided matching** | Epipolar constraints | pycolmap | Uses known poses to refine | Post-initial SfM |
 
 ### 3.3 Geometric verification (two-view)
@@ -206,7 +206,7 @@ Avoids O(N²) matching on large sets.
 | **RANSAC + fundamental matrix** | [Fischler & Bolles, 1981](https://doi.org/10.1145/358669.358692); [Hartley & Zisserman, 2004](https://doi.org/10.1017/CBO9780511811685) | COLMAP; OpenCV `findFundamentalMat` | Standard uncalibrated filter | Needs enough parallax |
 | **RANSAC + essential matrix** | Hartley & Zisserman | COLMAP; OpenCV | Calibrated cameras | Needs intrinsics estimate |
 | **RANSAC + homography** | Hartley & Zisserman | COLMAP | Planar / rotational motion | Wrong model hurts 3D |
-| **MAGSAC++** | [Barath et al., 2020](https://doi.org/10.1109/CVPR.2020.00041) | [danini/magsac](https://github.com/danini/magsac); OpenCV contrib | Better threshold-free scoring | Contrib build |
+| **MAGSAC++** | [Barath et al., 2020 (CVPR)](https://arxiv.org/abs/1912.05909) | [danini/magsac](https://github.com/danini/magsac); OpenCV contrib | Better threshold-free scoring | Contrib build |
 | **DEGENSAC** | [Chum et al., 2005](https://doi.org/10.1109/CVPR.2005.47) | OpenCV | Degeneracy awareness | Less exposed in COLMAP |
 | **LO-RANSAC** | [Chum et al., 2003](https://doi.org/10.1023/A:1024407627248) | COLMAP internal | Local optimization RANSAC | — |
 
@@ -242,7 +242,7 @@ Avoids O(N²) matching on large sets.
 
 | Solver | Reference | Packages | Pros | Cons |
 | --- | --- | --- | --- | --- |
-| **Ceres Solver** | [Agarwal et al., 2013](https://doi.org/10.1007/s11263-013-0721-3) | [ceres-solver/ceres-solver](https://github.com/ceres-solver/ceres-solver) | Industry standard non-linear least squares | C++ lib; used inside COLMAP |
+| **Ceres Solver** | [Agarwal et al., Ceres Solver](https://ceres-solver.org/) | [ceres-solver/ceres-solver](https://github.com/ceres-solver/ceres-solver) | Industry standard non-linear least squares | C++ lib; used inside COLMAP |
 | **g2o** | [Kümmerle et al., 2011](https://doi.org/10.1109/ICRA.2011.5979944) | [RainerKuemmerle/g2o](https://github.com/RainerKuemmerle/g2o) | Graph optimization framework | Lower-level |
 | **GTSAM** | [Dellaert & Gtsam, 2012](https://doi.org/10.1007/978-3-642-34046-5_32) | [borglab/gtsam](https://github.com/borglab/gtsam) | Factor graphs; strong docs | Different API culture |
 | **COLMAP BA** | Schönberger 2016 | pycolmap | Integrated; rad/distortion models | Black box unless configured |
@@ -274,9 +274,9 @@ Avoids O(N²) matching on large sets.
 | **COLMAP patch-match MVS** | [Schönberger et al., 2016](https://doi.org/10.1109/CVPR.2016.564) | [colmap/colmap](https://github.com/colmap/colmap) | Excellent quality; GPU option | CUDA path; memory |
 | **OpenMVS** | cDc 2015 | [cdcseacave/openMVS](https://github.com/cdcseacave/openMVS) | Dense point cloud + mesh | Separate toolchain |
 | **AliceVision MVS** | AliceVision | [alicevision/AliceVision](https://github.com/alicevision/AliceVision) | Integrated with Meshroom | Heavy |
-| **PMVS/CMVS** | [Furukawa & Ponce, 2010](https://doi.org/10.1109/CVPR.2010.5539970) | [Furu-Mura/PMVS](https://github.com/Furu-Mura/PMVS) | Classic | Superseded |
+| **PMVS/CMVS** | [Furukawa & Ponce, 2010 (TPAMI)](https://doi.org/10.1109/TPAMI.2009.161) | [pmoulon/CMVS-PMVS](https://github.com/pmoulon/CMVS-PMVS) | Classic | Superseded |
 | **ACMH / ACMH-MVS** | [Xu & Tao, 2019](https://doi.org/10.1109/CVPR.2019.00540) | Research repos | Fast multi-hypothesis | Less packaging |
-| **Neural MVS (MVSNet family)** | [Yao et al., 2018](https://doi.org/10.1109/CVPR.2018.00528) | [YeeCY/MVSNet](https://github.com/YeeCY/MVSNet) | Learned depth | GPU; needs training data match |
+| **Neural MVS (MVSNet family)** | [Yao et al., 2018 (ECCV)](https://arxiv.org/abs/1804.02505) | [YoYo000/MVSNet](https://github.com/YoYo000/MVSNet) | Learned depth | GPU; needs training data match |
 
 ### 3.8 Color propagation (optimization sub-stage)
 
@@ -287,7 +287,7 @@ Avoids O(N²) matching on large sets.
 | **Weighted by incidence angle** | Shading models | Custom | Reduces grazing-angle blur | More code |
 | **Bilinear texture sample** | Graphics standard | OpenCV `remap`; numpy | Sub-pixel color | Needs float images |
 | **Dense patch color (MVS)** | Schönberger MVS 2016 | COLMAP dense | High-quality dense color | M2 scope |
-| **Exposure compensation before sample** | [Laffont et al., 2012](https://doi.org/10.1109/CVPR.2012.6248018) | OpenCV; OpenMVG radiometry | Consistent colors across exposures | Extra solve |
+| **Exposure compensation before sample** | [Goldman, 2010 (TPAMI)](https://doi.org/10.1109/TPAMI.2010.55) | OpenCV; OpenMVG radiometry | Consistent colors across exposures | Extra solve |
 | **Learned appearance (NeRF-style)** | [Mildenhall et al., 2020](https://doi.org/10.1145/3386569.3392455) | nerfstudio etc. | View-dependent effects | Not sparse PLY friendly |
 
 **M1 recommendation:** use **COLMAP / pycolmap** track colors (median RGB from
@@ -421,6 +421,65 @@ Aligned with [decisions.md AD-03](decisions.md#ad-03--sfm-backend-was-od-03) and
 
 ---
 
+## 7b. Implementation & integration readiness
+
+This section answers two questions for an implementer: *do the chosen algorithms
+have a concrete, installable Python path?* and *does the documentation set give
+everything needed to implement and integrate luthier as a library and as a
+client?*
+
+### 7b.1 Per-layer implementation toolchain (M1 default path)
+
+Each stage maps to a concrete package, install command, and the luthier
+[stack slot](architecture.md#102-stackyml-schema) that selects it.
+
+| Layer / slot | Package (M1) | Install | Minimal entry point |
+| --- | --- | --- | --- |
+| `io.discover` | stdlib `pathlib` | — | `luthier.io.discover_images` (implemented) |
+| `io.decode` | `opencv-python-headless` | `pip install opencv-python-headless` | `cv2.imread` |
+| `features.extractor` | `pycolmap` | `pip install pycolmap` | `pycolmap.extract_features` |
+| `reconstruction.*` | `pycolmap` | `pip install pycolmap` | `pycolmap.match_exhaustive`, `pycolmap.incremental_mapping` |
+| `reconstruction.coloring` | `pycolmap` + `numpy` | `pip install pycolmap numpy` | track colors from `pycolmap.Reconstruction` |
+| `postprocess.outliers` | `open3d` (optional) | `pip install open3d` | `remove_statistical_outlier` |
+| `output.serializer` | stdlib `struct` | — | `luthier.io.write_point_cloud` (contract defined) |
+
+All M1 algorithm work runs through **pycolmap**, which ships binary wheels on
+Linux/macOS/Windows for CPython 3.10–3.13, so no separate COLMAP build is
+required for the default path ([AD-03](decisions.md#ad-03--sfm-backend-was-od-03),
+[AD-04](decisions.md#ad-04--runtime-dependencies-m1)).
+
+### 7b.2 Enabling the reconstruction dependencies
+
+The runtime dependencies are specified ([spec §12](specification.md#12-dependencies-m1--approved))
+but ship as a **commented-out optional extra** in `pyproject.toml` until the M1
+PR, to keep the framework install light. The M1 implementation PR uncomments and
+installs:
+
+```bash
+pip install -e ".[dev,reconstruction]"   # reconstruction = numpy, opencv, pycolmap
+```
+
+### 7b.3 Documentation coverage for implementation and integration
+
+| Need | Covered by | Status |
+| --- | --- | --- |
+| What to build (requirements, acceptance) | [specification.md](specification.md) | ✅ |
+| System/module design, layer contracts | [architecture.md](architecture.md) §1–§11 | ✅ |
+| Algorithm choices + OSS libraries per layer | this document | ✅ |
+| Resolved defaults and rationale | [decisions.md](decisions.md) AD-01 … AD-12 | ✅ |
+| How to plug/swap algorithms | [architecture.md §10](architecture.md#10-config-driven-algorithm-stack), [README](../README.md#pluggable-algorithm-stack-design-guidelines) | ✅ |
+| Test levels + traceability | [testing.md](testing.md) | ✅ |
+| Library + CLI usage | [README](../README.md#python-api) | ✅ |
+| Extending via plugins (entry points) | [architecture.md §11.2](architecture.md#112-algorithm-registration-and-discovery-new-interface) | ✅ |
+| Method / contribution workflow | [CONTRIBUTING.md](../CONTRIBUTING.md) | ✅ |
+
+**Conclusion:** the algorithm catalog is accurate and the documentation set is
+sufficient to implement M1 and to integrate luthier both as a library and as a
+client. The only deferred enablement is uncommenting the `reconstruction` extra
+in `pyproject.toml` at M1 (§7b.2).
+
+---
+
 ## 8. Master bibliography (quick index)
 
 | ID | Citation | URL |
@@ -431,7 +490,7 @@ Aligned with [decisions.md AD-03](decisions.md#ad-03--sfm-backend-was-od-03) and
 | B-MOULON-2016 | Moulon et al., OpenMVG, JMLR 2016 | [DOI](https://doi.org/10.1007/s11263-015-0828-3) |
 | B-HARTLEY-2004 | Hartley & Zisserman, Multiple View Geometry | [DOI](https://doi.org/10.1017/CBO9780511811685) |
 | B-CERES-2013 | Agarwal et al., Ceres Solver | [Ceres](https://ceres-solver.org/) |
-| B-SARLIN-2020 | Sarlin et al., SuperGlue, CVPR 2020 | [DOI](https://doi.org/10.1109/CVPR.2020.00041) |
+| B-SARLIN-2020 | Sarlin et al., SuperGlue, CVPR 2020 | [DOI](https://arxiv.org/abs/1911.11763) |
 | B-LINDENBERGER-2023 | Lindenberger et al., LightGlue, ICCV 2023 | [DOI](https://doi.org/10.1109/ICCV.2023.00837) |
 | B-PAN-2024 | Pan et al., GLOMAP, 2024 | [arXiv](https://arxiv.org/abs/2408.16293) |
 | B-WILSON-2014 | Wilson & Snavely, Robust Global Translations, ECCV 2014 | [DOI](https://doi.org/10.1007/s11263-013-0721-3) |
@@ -440,7 +499,7 @@ Aligned with [decisions.md AD-03](decisions.md#ad-03--sfm-backend-was-od-03) and
 | B-RUBLEE-2011 | Rublee et al., ORB, ICCV 2011 | [DOI](https://doi.org/10.1109/ICCV.2011.6126544) |
 | B-ALCANTARILLA-2013 | Alcantarilla et al., AKAZE, IJCV 2013 | [DOI](https://doi.org/10.1007/s11263-012-0590-3) |
 | B-DETONE-2018 | DeTone et al., SuperPoint | [arXiv](https://arxiv.org/abs/1712.07684) |
-| B-YAO-2018 | Yao et al., MVSNet, ECCV 2018 | [DOI](https://doi.org/10.1109/CVPR.2018.00528) |
+| B-YAO-2018 | Yao et al., MVSNet, ECCV 2018 | [arXiv](https://arxiv.org/abs/1804.02505) |
 | B-ESTER-1996 | Ester et al., DBSCAN, KDD 1996 | [DOI](https://doi.org/10.1145/783921.782009) |
 
 ---
