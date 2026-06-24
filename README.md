@@ -11,7 +11,7 @@ is not implemented yet.
 | --- | --- |
 | [docs/specification.md](docs/specification.md) | Product spec and acceptance criteria (SDD) |
 | [docs/decisions.md](docs/decisions.md) | Resolved architecture decisions (Step 1 / M1) |
-| [docs/architecture.md](docs/architecture.md) | System design and module layout |
+| [docs/architecture.md](docs/architecture.md) | System design, **algorithm stack** (§9), module layout |
 | [docs/testing.md](docs/testing.md) | TDD strategy and test traceability |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Development workflow and quality gates |
 
@@ -38,6 +38,37 @@ is not implemented yet.
 
 A **second input source** (remote URLs, manifests, etc.) will be added in a
 future release without breaking the local workflow.
+
+---
+
+## Algorithm stack (systems view)
+
+Reconstruction is organized in layers from **N images** to a **binary PLY**.
+Full contracts (inputs, outputs, formats) are in
+[docs/architecture.md §9](docs/architecture.md#9-algorithm-stack).
+
+```mermaid
+flowchart LR
+    IO["IO\nprepare ImageSet"]
+    FE["Features\nkeypoints + descriptors"]
+    OPT["Optimization\nmatch, SfM, color"]
+    POST["Post-process\noutlier rejection"]
+    OUT["Output\nbinary PLY"]
+
+    IO --> FE --> OPT --> POST --> OUT
+```
+
+| Layer | Role |
+| --- | --- |
+| **IO** | Discover, validate, decode images; sync golden data; *(future)* video → frames |
+| **Features** | Keypoints, descriptors, regions of interest |
+| **Optimization** | Correspondences, camera poses, triangulation, **per-point RGB** |
+| **Post-processing** | Reject geometric outliers; optional color refinement |
+| **Output** | Serialize `PointCloud` → `.ply` (CloudCompare-ready) |
+
+**Web UI:** belongs in the **Interface** layer (with CLI/API), not IO — it would
+call the same `pipeline` and use IO only for staging uploads. A bundled viewer
+remains out of scope per the spec.
 
 ---
 
@@ -184,10 +215,16 @@ src/luthier/
   models.py           # PointCloud, ReconstructionResult, …
   io/
     images.py         # discover_images
-    pointcloud.py     # write_point_cloud (stub)
+    sync.py           # golden-data sync (placeholder)
+    video.py          # video → frames (placeholder)
+    pointcloud.py     # write_point_cloud (stub; → output/)
+  features/           # feature extraction (placeholder)
+  reconstruction/     # SfM + color propagation (placeholder)
+  postprocess/        # outlier rejection (placeholder)
+  output/             # PLY serialization (placeholder)
 docs/
   specification.md    # SDD product specification
-  architecture.md     # System design
+  architecture.md     # System design + algorithm stack (§9)
   testing.md          # TDD / V-cycle testing strategy
 tests/
   test_cli.py
