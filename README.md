@@ -73,6 +73,104 @@ remains out of scope per the spec.
 
 ---
 
+## Pluggable algorithm stack (design guidelines)
+
+Before M1 implementation, luthier standardizes how algorithms are **named**,
+**wired**, and **swapped**. Goal: change a stage by editing `config/stack.yml`,
+not by rewriting `pipeline.py`.
+
+### Design pattern: Strategy + Registry + Pipeline
+
+| Pattern | Role in luthier |
+| --- | --- |
+| [**Strategy**](https://refactoring.guru/design-patterns/strategy) | Each algorithm implements a small **layer protocol** (`protocols/*.py`) with one job (discover, extract, reconstruct, filter, write). |
+| [**Registry**](https://refactoring.guru/design-patterns/registry) | `stack/registry.py` maps the string in `stack.yml` (`algorithm: colmap_sift`) to a factory that builds the Strategy. |
+| **Pipeline (application)** | `pipeline.py` loads `StackConfig`, resolves each slot, passes **domain artifacts** layer to layer (`ImageSet` → `FeatureSet` → … → `PointCloud`). |
+
+Only **general structures** are shared across layers:
+
+- **Domain models** — `PointCloud`, `Point3D`, inputs/results (`models.py`); future `ImageSet`, `FeatureSet`, `ReconstructionScene`.
+- **Protocols** — `luthier/protocols/` (typing `Protocol` interfaces per layer).
+- **Stack config** — `luthier/stack/config.py` + `config/stack.yml`.
+- **Exceptions** — `luthier/exceptions.py`.
+
+Algorithm-specific types, third-party handles (pycolmap database paths, OpenCV
+matrices), and tuning constants stay **inside** `{algorithm_name}.py`.
+
+### File naming: `{algorithm_name}.py`
+
+Inside each layer package (`io/`, `features/`, `reconstruction/`, `postprocess/`,
+`output/`), **one file per algorithm**. The file name must match the `algorithm`
+value in `stack.yml` (snake_case):
+
+```text
+src/luthier/
+  io/
+    pathlib_discover.py      # algorithm: pathlib_discover
+    opencv_decode.py           # algorithm: opencv_decode
+  features/
+    colmap_sift.py             # algorithm: colmap_sift
+  reconstruction/
+    colmap_incremental.py    # algorithm: colmap_incremental
+  postprocess/
+    statistical_outlier_removal.py
+  output/
+    ply_binary_le.py           # algorithm: ply_binary_le
+```
+
+Rules:
+
+1. **No generic names** (`extraction.py`, `utils.py`) for algorithm code — use the algorithm id.
+2. **Thin compatibility shims** are allowed (`io/images.py` re-exporting `pathlib_discover`) for public API stability.
+3. **Register** each implementation in `stack/registry.py` (or the layer `__init__.py` during import) under its `algorithm` string.
+4. **Parameters** tune behavior via `params:` in YAML, not hard-coded constants in `pipeline.py`.
+
+### Stack configuration (`config/stack.yml`)
+
+The stack file selects implementations per **layer** and **slot**:
+
+```yaml
+layers:
+  features:
+    extractor:
+      algorithm: colmap_sift
+      params:
+        max_num_features: 8192
+```
+
+- `algorithm: null` — skip optional slot (e.g. dense MVS in M1).
+- `params` — passed to the registered factory; validated by the algorithm module.
+
+Default file: [`config/stack.yml`](config/stack.yml) (`m1-sparse-colmap-default`).
+
+Load in Python (available now):
+
+```python
+from pathlib import Path
+
+from luthier.stack import load_stack_config
+
+stack = load_stack_config(Path("config/stack.yml"))
+print(stack.slot("features", "extractor").algorithm)  # colmap_sift
+```
+
+Planned CLI:
+
+```bash
+luthier --dir ./photos --stack config/stack.yml --output scene.ply
+```
+
+To swap features to a future backend, change one line:
+
+```yaml
+    extractor:
+      algorithm: superpoint  # after implementing features/superpoint.py
+```
+
+Further detail: [docs/architecture.md §10](docs/architecture.md#10-config-driven-algorithm-stack).
+
+---
+
 ## Installation
 
 Requires **Python 3.10+**.
@@ -212,17 +310,26 @@ Or open **File → Open** in the CloudCompare GUI.
 ```text
 src/luthier/
   cli.py              # luthier --dir … --output …
-  pipeline.py         # reconstruct_from_directory (stub)
-  models.py           # PointCloud, ReconstructionResult, …
+  pipeline.py         # orchestration (loads stack.yml)
+  models.py           # shared domain types
+  protocols/          # layer interfaces (Strategy contracts)
+  stack/
+    config.py         # load stack.yml
+    registry.py       # algorithm name → implementation
   io/
-    images.py         # discover_images
-    sync.py           # golden-data sync (placeholder)
-    video.py          # video → frames (placeholder)
-    pointcloud.py     # write_point_cloud (stub; → output/)
-  features/           # feature extraction (placeholder)
-  reconstruction/     # SfM + color propagation (placeholder)
-  postprocess/        # outlier rejection (placeholder)
-  output/             # PLY serialization (placeholder)
+    pathlib_discover.py
+    opencv_decode.py
+    images.py         # API shim → pathlib_discover
+  features/
+    colmap_sift.py
+  reconstruction/
+    colmap_incremental.py
+  postprocess/
+    statistical_outlier_removal.py
+  output/
+    ply_binary_le.py
+config/
+  stack.yml           # default algorithm stack (edit to swap backends)
 docs/
   specification.md    # SDD product specification
   architecture.md     # System design + algorithm stack (§9)

@@ -506,3 +506,107 @@ src/luthier/
 
 Each new package requires updates to this section, `specification.md`, and
 [testing.md](testing.md) before implementation.
+
+---
+
+## 10. Config-driven algorithm stack
+
+This section defines **how** algorithms are plugged into the layers from
+[§9](#9-algorithm-stack). Algorithm **choices** are cataloged in
+[algorithms.md](algorithms.md); defaults live in [`config/stack.yml`](../config/stack.yml).
+
+### 10.1 Pattern: Strategy + Registry + Pipeline
+
+```text
+config/stack.yml
+       │
+       ▼
+ load_stack_config()  ──▶  StackConfig (layer → slot → algorithm + params)
+       │
+       ▼
+ pipeline.py  ──for each slot──▶  registry.resolve(layer, slot)
+       │                              │
+       │                              ▼
+       │                    {algorithm_name}.py  (Strategy)
+       │
+       └── passes only domain artifacts between layers
+```
+
+| Piece | Module | Responsibility |
+| --- | --- | --- |
+| **Protocols** | `luthier/protocols/` | `typing.Protocol` per layer; stable `run`/`discover`/`extract`/… signatures |
+| **Algorithms** | `luthier/{layer}/{algorithm_name}.py` | One Strategy per file; name matches YAML `algorithm:` |
+| **Registry** | `luthier/stack/registry.py` | `register(layer, algorithm, factory)`; `resolve` for pipeline |
+| **Config** | `luthier/stack/config.py` | Parse and validate `stack.yml` → `StackConfig` |
+| **Pipeline** | `luthier/pipeline.py` | Load config, resolve slots in order, no algorithm names hard-coded |
+
+**Shared vs algorithm-local**
+
+| Shared (cross-layer) | Algorithm-local (inside `{algorithm_name}.py`) |
+| --- | --- |
+| `PointCloud`, `Point3D`, `ReconstructionResult` | pycolmap `Database`, reconstruction objects |
+| Future: `ImageSet`, `FeatureSet`, `ReconstructionScene` | OpenCV `Mat`, SIFT detector instances |
+| `StackConfig`, `SlotConfig` | Default thresholds not exposed in YAML |
+| Protocol interfaces | Backend-specific error translation to `ReconstructionError` |
+
+### 10.2 `stack.yml` schema
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `version` | int | yes | Config schema version (currently `1`) |
+| `name` | str | yes | Preset identifier (e.g. `m1-sparse-colmap-default`) |
+| `description` | str | no | Human-readable summary |
+| `layers` | map | yes | Top-level keys: `io`, `features`, `reconstruction`, `postprocess`, `output` |
+| `layers.*.*` | slot | yes | Nested slot name (e.g. `extractor`, `sfm`, `serializer`) |
+| `algorithm` | str \| null | yes | Registered algorithm id, or `null` to skip optional stage |
+| `params` | map | no | Keyword arguments for the algorithm factory |
+
+**Slot catalog (M1 target)**
+
+| Layer | Slot | Default `algorithm` |
+| --- | --- | --- |
+| `io` | `discover` | `pathlib_discover` |
+| `io` | `decode` | `opencv_decode` |
+| `io` | `video_frames` | `null` |
+| `features` | `extractor` | `colmap_sift` |
+| `reconstruction` | `pair_selection` | `colmap_exhaustive_pairs` |
+| `reconstruction` | `matcher` | `colmap_exhaustive_match` |
+| `reconstruction` | `verifier` | `colmap_ransac` |
+| `reconstruction` | `sfm` | `colmap_incremental` |
+| `reconstruction` | `bundle_adjustment` | `colmap_bundle_adjustment` |
+| `reconstruction` | `triangulation` | `colmap_triangulation` |
+| `reconstruction` | `coloring` | `colmap_median_rgb` |
+| `reconstruction` | `dense` | `null` (M2) |
+| `postprocess` | `geometric_filter` | `colmap_reprojection_filter` |
+| `postprocess` | `outliers` | `statistical_outlier_removal` |
+| `postprocess` | `radiometry` | `null` |
+| `output` | `serializer` | `ply_binary_le` |
+
+Sub-stages under `reconstruction` may be implemented by a **single** backend
+(`colmap_incremental` wrapping pycolmap) that reads all reconstruction slots;
+finer slots still allow future decomposition without YAML churn.
+
+### 10.3 Adding a new algorithm
+
+1. Create `src/luthier/{layer}/{algorithm_name}.py` implementing the layer protocol.
+2. Call `register("{layer}", "{algorithm_name}", factory)` with a factory accepting `SlotConfig`.
+3. Document the algorithm in [algorithms.md](algorithms.md).
+4. Add or switch an entry in `config/stack.yml`.
+5. Add unit tests for the module and an integration test with the stack preset.
+
+### 10.4 Module tree (config-aware)
+
+```text
+config/
+  stack.yml
+src/luthier/
+  protocols/
+  stack/
+  io/pathlib_discover.py
+  features/colmap_sift.py
+  reconstruction/colmap_incremental.py
+  postprocess/statistical_outlier_removal.py
+  output/ply_binary_le.py
+```
+
+See also [README § Pluggable algorithm stack](../README.md#pluggable-algorithm-stack-design-guidelines).

@@ -1,12 +1,18 @@
 """Point cloud serialization (output layer).
 
-Systems contract (see docs/architecture.md §9.3.5):
-  Input:  PointCloud, output_path, file_format (default PLY)
-  Output: binary little-endian PLY on disk (M1)
-
-Implementation currently lives in ``luthier.io.pointcloud`` during transition.
+Re-exports the default ``ply_binary_le`` algorithm. See ``ply_binary_le.py``.
 """
 
-from luthier.io.pointcloud import write_point_cloud
+from luthier.io.pointcloud import (
+    DEFAULT_POINT_CLOUD_FORMAT,
+    POINT_CLOUD_FORMAT_PLY,
+    write_point_cloud,
+)
+from luthier.output.ply_binary_le import write
 
-__all__ = ["write_point_cloud"]
+__all__ = [
+    "DEFAULT_POINT_CLOUD_FORMAT",
+    "POINT_CLOUD_FORMAT_PLY",
+    "write",
+    "write_point_cloud",
+]

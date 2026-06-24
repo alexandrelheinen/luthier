@@ -49,6 +49,8 @@ dev = [
     "black>=24.10",
     "ruff>=0.8",
     "mypy>=1.13",
+    "PyYAML>=6.0",
+    "types-PyYAML>=6.0",
 ]
 # Planned for reconstruction milestone M1 (not installed by default):
 # reconstruction = ["numpy>=2.0", "opencv-python-headless>=4.10"]
@@ -96,6 +98,9 @@ mypy_path = "src"
 [tool.coverage.run]
 branch = true
 source = ["luthier"]
+omit = [
+    "src/luthier/protocols/*",
+]
 
 # -----------------------------------------------------------------------------
 # CI quality gate — unit test line coverage on src/luthier (%).

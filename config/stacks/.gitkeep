@@ -1,0 +1,4 @@
+# Alternate stack presets (optional). Copy or pass via --stack.
+#
+# Example learned-features path (M2+ / research):
+#   cp config/stacks/hloc-superpoint-lightglue.yml config/stack.yml

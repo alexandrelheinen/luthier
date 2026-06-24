@@ -97,8 +97,21 @@ COLMAP install required for the default path.
 
 ---
 
+## AD-08 — Config-driven algorithm stack
+
+| Field | Decision |
+| --- | --- |
+| **Pattern** | Strategy + Registry + Pipeline (see [architecture.md §10](architecture.md#10-config-driven-algorithm-stack)) |
+| **Config file** | [`config/stack.yml`](../config/stack.yml) — swap `algorithm:` per slot |
+| **Naming** | One module per algorithm: `src/luthier/{layer}/{algorithm_name}.py` |
+| **Shared code** | Domain models + `protocols/` + `stack/` only; no algorithm names in `pipeline.py` |
+| **Rationale** | M1 uses pycolmap but later slots (hloc, Open3D filters) must be YAML-swappable |
+
+---
+
 ## Decision log
 
 | ID | Date | Summary |
 | --- | --- | --- |
 | AD-01 … AD-07 | 2026-06-24 | Step 1 closed; pycolmap backend; 80% coverage gate |
+| AD-08 | 2026-06-24 | `stack.yml` + Strategy/Registry; `{algorithm_name}.py` modules |
