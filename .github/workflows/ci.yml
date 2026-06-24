@@ -36,6 +36,7 @@ jobs:
           test -f docs/specification.md
           test -f docs/architecture.md
           test -f docs/testing.md
+          test -f docs/decisions.md
           test -f README.md
 
       - name: Check formatting with Black
@@ -53,7 +54,7 @@ jobs:
           luthier --version
           python -m luthier --help
 
-      - name: Run tests with coverage
+      - name: Run unit tests with coverage gate (≥ 80%)
         run: pytest --cov=luthier --cov-report=term-missing
 
   acceptance:

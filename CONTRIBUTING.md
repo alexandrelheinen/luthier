@@ -202,7 +202,7 @@ CI enforces the following on every push to `main` and on every pull request:
 | **Black** | PEP 8 formatting | `black --check src tests` |
 | **Ruff** | Linting (style, bugs, imports) | `ruff check src tests` |
 | **mypy** | Static type checking (`strict`) | `mypy` |
-| **pytest** | Unit tests and coverage report | `pytest --cov=luthier --cov-report=term-missing` |
+| **pytest** | Unit tests and coverage report (≥ 80% line coverage on `luthier`; see `fail_under` in `pyproject.toml`) | `pytest --cov=luthier --cov-report=term-missing` |
 
 All checks must pass on all supported Python versions in the CI matrix before merge.
 
