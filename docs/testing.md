@@ -122,9 +122,12 @@ Optional dev dependency for tests (future PR): `numpy` for byte unpacking.
 
 ```text
 tests/data/golden/
-  images/          # ≥ 10 JPEG/PNG photographs
-  README.md        # provenance and license
+  colmap.yml       # Dataset manifest (URLs, subset, acceptance thresholds)
+  images/          # Populated by scripts/fetch_golden_colmap.sh (gitignored)
+  README.md
 ```
+
+Default public dataset: **COLMAP South Building** (see `colmap.yml`).
 
 ### 7.2 Provenance requirements
 
