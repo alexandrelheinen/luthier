@@ -216,6 +216,7 @@ The description is **systems-oriented**: each layer specifies what it consumes,
 what it produces, and the characteristics of those artifacts. **Which algorithm**
 performs each step (SIFT, COLMAP incremental mapping, statistical outlier removal,
 etc.) is an implementation choice inside the layer, not part of this contract.
+See [algorithms.md](algorithms.md) for the state-of-the-art catalog of options.
 
 ### 9.1 Stack overview
 

@@ -12,9 +12,11 @@ not yet implemented.
 | Document | Role |
 | --- | --- |
 | [architecture.md](architecture.md) | System design and module boundaries |
+| [algorithms.md](algorithms.md) | Algorithm & OSS library research per layer |
 | [testing.md](testing.md) | TDD strategy, test levels, and CI mapping |
 | [../README.md](../README.md) | User-facing documentation and quick start |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | Development constitution (SDD + V-cycle + TDD) |
+| [decisions.md](decisions.md) | Resolved architecture decisions |
 
 ---
 

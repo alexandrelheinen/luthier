@@ -12,6 +12,7 @@ is not implemented yet.
 | [docs/specification.md](docs/specification.md) | Product spec and acceptance criteria (SDD) |
 | [docs/decisions.md](docs/decisions.md) | Resolved architecture decisions (Step 1 / M1) |
 | [docs/architecture.md](docs/architecture.md) | System design, **algorithm stack** (§9), module layout |
+| [docs/algorithms.md](docs/algorithms.md) | Algorithm choices, pros/cons, OSS libraries per layer |
 | [docs/testing.md](docs/testing.md) | TDD strategy and test traceability |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Development workflow and quality gates |
 
@@ -225,6 +226,7 @@ src/luthier/
 docs/
   specification.md    # SDD product specification
   architecture.md     # System design + algorithm stack (§9)
+  algorithms.md       # Algorithm & library research (state of the art)
   testing.md          # TDD / V-cycle testing strategy
 tests/
   test_cli.py
