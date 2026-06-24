@@ -26,6 +26,18 @@ def test_help_mentions_dir_and_output() -> None:
     assert "--output" in help_text
 
 
+def test_main_module_entry_point_help() -> None:
+    """Cover ``python -m luthier`` entry and AC-CLI-01."""
+    result = subprocess.run(
+        [sys.executable, "-m", "luthier", "--version"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "0.2.0" in result.stdout
+
+
 def test_installed_entry_point_help() -> None:
     """AC-CLI-01 smoke via subprocess."""
     result = subprocess.run(
