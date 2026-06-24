@@ -223,7 +223,8 @@ unitary commit rules.
 # Default (excludes acceptance tests needing golden images)
 pytest
 
-# Acceptance tests only (after adding tests/data/golden/images/)
+# Fetch COLMAP golden images, then run acceptance tests
+./scripts/fetch_golden_colmap.sh
 pytest -m acceptance
 ```
 
