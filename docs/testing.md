@@ -174,12 +174,16 @@ pytest --cov=luthier --cov-report=term-missing
 
 ## 9. CI mapping
 
+The whole `quality` matrix (`black`, `ruff`, `mypy`, `pytest`) passing on every
+supported Python version is the verification of **AC-QG-01**.
+
 | CI step | V-cycle right side |
 | --- | --- |
-| `black --check` | Coding standard |
-| `ruff check` | Lint / import order |
-| `mypy` | Detailed design (types) |
-| `pytest` + coverage `fail_under` | Unit + integration tests; **≥ 80%** line coverage (AC-QG-02) |
+| `black --check` | Coding standard (AC-QG-01) |
+| `ruff check` | Lint / import order (AC-QG-01) |
+| `mypy` | Detailed design (types) (AC-QG-01) |
+| `pytest` + coverage `fail_under` | Unit + integration tests; **≥ 80%** line coverage (AC-QG-01, AC-QG-02) |
+| `python scripts/check_governance.py` | Method enforcement: traceability, stack/code consistency, single constitution |
 | `luthier --help` | AC-CLI-01 smoke |
 | (future) `pytest -m acceptance` | AC-REC-* on golden data (no coverage gate; unit job enforces 80%) |
 
