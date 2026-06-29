@@ -1,0 +1,39 @@
+{
+  "artifacts": {
+    "flythrough": "south-building-flythrough.mp4",
+    "input_montage": "south-building-input-montage.jpg",
+    "manifest": "manifest.json",
+    "ply": "south-building-scene.ply",
+    "render_front": "south-building-front.png",
+    "render_side": "south-building-side.png"
+  },
+  "dataset": {
+    "documentation": "https://colmap.github.io/datasets.html",
+    "id": "south-building",
+    "image_count_used": 20,
+    "images_dir": "tests/data/golden/images",
+    "manifest": "tests/data/golden/colmap.yml",
+    "montage_samples": [
+      "P1180141.JPG",
+      "P1180142.JPG",
+      "P1180143.JPG",
+      "P1180144.JPG",
+      "P1180145.JPG",
+      "P1180146.JPG",
+      "P1180147.JPG",
+      "P1180148.JPG"
+    ],
+    "name": "South Building (UNC Chapel Hill)",
+    "provider": "COLMAP benchmark \u2014 Christopher Zach (images)",
+    "source_url": "https://github.com/colmap/colmap/releases/download/3.11.1/south-building.zip"
+  },
+  "generated_at": "2026-06-29T15:59:40.383331+00:00",
+  "luthier_version": "0.3.0",
+  "reconstruction": {
+    "camera_count": 20,
+    "elapsed_seconds": 115.39,
+    "output_ply_bytes": 74578,
+    "point_count": 4960,
+    "stack": "config/stack.yml"
+  }
+}
