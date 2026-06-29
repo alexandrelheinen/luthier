@@ -124,23 +124,31 @@ def run_incremental_sfm(
 
 def reconstruction_to_point_cloud(
     reconstruction: pycolmap.Reconstruction,
+    *,
+    max_reprojection_error: float | None = None,
 ) -> PointCloud:
     """Convert a pycolmap reconstruction to a colored point cloud."""
-    points = tuple(
-        Point3D(
-            x=float(point.xyz[0]),
-            y=float(point.xyz[1]),
-            z=float(point.xyz[2]),
-            r=int(point.color[0]),
-            g=int(point.color[1]),
-            b=int(point.color[2]),
+    points: list[Point3D] = []
+    for point in reconstruction.points3D.values():
+        if (
+            max_reprojection_error is not None
+            and float(point.error) > max_reprojection_error
+        ):
+            continue
+        points.append(
+            Point3D(
+                x=float(point.xyz[0]),
+                y=float(point.xyz[1]),
+                z=float(point.xyz[2]),
+                r=int(point.color[0]),
+                g=int(point.color[1]),
+                b=int(point.color[2]),
+            )
         )
-        for point in reconstruction.points3D.values()
-    )
     if not points:
         msg = "Sparse reconstruction contains no triangulated 3D points."
         raise ReconstructionError(msg)
-    return PointCloud(points=points)
+    return PointCloud(points=tuple(points))
 
 
 def scene_from_reconstruction(
@@ -148,5 +156,6 @@ def scene_from_reconstruction(
 ) -> ReconstructionScene:
     """Wrap a pycolmap reconstruction as a reconstruction scene."""
     return ReconstructionScene(
-        point_cloud=reconstruction_to_point_cloud(reconstruction)
+        point_cloud=reconstruction_to_point_cloud(reconstruction),
+        reconstruction=reconstruction,
     )
