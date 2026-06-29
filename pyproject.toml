@@ -52,8 +52,11 @@ dev = [
     "PyYAML>=6.0",
     "types-PyYAML>=6.0",
 ]
-# Planned for reconstruction milestone M1 (not installed by default):
-# reconstruction = ["numpy>=2.0", "opencv-python-headless>=4.10"]
+reconstruction = [
+    "numpy>=2.0",
+    "opencv-python-headless>=4.10",
+    "pycolmap>=3.11",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/luthier"]
