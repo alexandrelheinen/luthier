@@ -301,7 +301,7 @@ Each methodology rule maps to an automated check and the CI job that runs it.
 | Conventional, unitary commits | commit-subject lint over the PR commit range | `governance` (PR only) |
 | Branch naming `<type>/<slug>` | branch-name check | `governance` (PR only) |
 | PR has Summary + Test plan | PR-body check | `governance` (PR only) |
-| Acceptance criteria on golden data | `pytest -m acceptance` when golden images present | `acceptance` (PR only) |
+| Acceptance criteria on golden data | `pytest -m acceptance` when golden images present | `acceptance` (PR and `main` push) |
 
 The authoritative implementation is [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 and the reusable script [`scripts/check_governance.py`](scripts/check_governance.py).
