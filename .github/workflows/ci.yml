@@ -133,16 +133,8 @@ jobs:
       - name: Install package and dev tools
         run: pip install -e ".[dev,reconstruction]"
 
-      - name: Run acceptance tests when golden data is present
-        run: |
-          IMAGE_COUNT="$(
-            find tests/data/golden/images -maxdepth 1 -type f \
-              \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \
-                 -o -iname '*.tif' -o -iname '*.tiff' -o -iname '*.bmp' \) \
-              2>/dev/null | wc -l | tr -d ' '
-          )"
-          if [ "${IMAGE_COUNT}" -ge 10 ]; then
-            pytest -m acceptance
-          else
-            echo "Golden images not present (${IMAGE_COUNT}/10); skipping acceptance job."
-          fi
+      - name: Fetch COLMAP golden images
+        run: ./scripts/fetch_golden_colmap.sh --count 20
+
+      - name: Run acceptance tests
+        run: pytest -m acceptance
