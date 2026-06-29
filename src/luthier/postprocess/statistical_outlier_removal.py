@@ -12,5 +12,5 @@ name = "statistical_outlier_removal"
 
 
 def filter(point_cloud: PointCloud) -> PointCloud:
-    """Return cloud with statistical outliers removed (not implemented until M1)."""
-    raise NotImplementedError("statistical_outlier_removal is not implemented yet.")
+    """Return the cloud unchanged until Open3D outlier removal is enabled."""
+    return point_cloud
