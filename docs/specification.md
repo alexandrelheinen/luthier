@@ -4,8 +4,7 @@ This document is the **spec-as-source** artifact for the luthier photogrammetry
 library. Code, tests, and user documentation must be derived from and validated
 against this specification.
 
-**Status:** v0.2.0 — framework and specification only; reconstruction pipeline
-not yet implemented.
+**Status:** v0.3.0 — M1 sparse SfM pipeline implemented (local directory → binary PLY).
 
 **Related documents:**
 
@@ -339,6 +338,7 @@ Install: `pip install luthier` (dependencies in `[project.dependencies]`) or
 | 0.2.0 | 2026-06-24 | Initial photogrammetry specification; local `--dir` input; PLY output; CloudCompare viewer; CLI and API stubs |
 | 0.3.0 | 2026-06-24 | Step 1 decisions closed; pycolmap backend; 80% unit-test coverage gate — see [decisions.md](decisions.md) |
 | 0.3.1 | 2026-06-29 | Single supported Python: 3.12 only (AD-13); CI matrix removed |
+| 0.3.0 | 2026-06-29 | M1 sparse SfM pipeline; post-process filters; golden acceptance in CI |
 
 ---
 
