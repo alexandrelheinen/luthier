@@ -6,11 +6,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+import cv2
+import numpy as np
 import pytest
 
 from luthier.cli import (
     EXIT_ERROR,
-    EXIT_NOT_IMPLEMENTED,
     build_parser,
     resolve_output_path,
     run,
@@ -113,15 +114,19 @@ def test_validate_args_resolves_output(
     assert parsed_output == output.resolve()
 
 
-def test_pipeline_not_implemented_exit_code(
+def test_pipeline_single_image_exit_code(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """AC-CLI-06."""
+    """Fewer than two images returns exit code 1 (AC-REC-02 via CLI)."""
     image_dir = tmp_path / "photos"
     image_dir.mkdir()
-    (image_dir / "a.jpg").write_bytes(b"\xff\xd8\xff")
+    array = np.zeros((32, 32, 3), dtype=np.uint8)
+    cv2.imwrite(
+        str(image_dir / "only.png"),
+        cv2.cvtColor(array, cv2.COLOR_RGB2BGR),
+    )
     code = run(["--dir", str(image_dir), "--output", str(tmp_path / "out.ply")])
     captured = capsys.readouterr()
-    assert code == EXIT_NOT_IMPLEMENTED
-    assert "not implemented" in captured.err.lower()
+    assert code == EXIT_ERROR
+    assert "at least 2 images" in captured.err.lower()
