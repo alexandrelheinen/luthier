@@ -47,6 +47,16 @@ def build_parser() -> argparse.ArgumentParser:
             "the chosen path is printed on success."
         ),
     )
+    parser.add_argument(
+        "--stack",
+        dest="stack_path",
+        type=Path,
+        metavar="FILE",
+        help=(
+            "Algorithm stack YAML file. Defaults to config/stack.yml in the "
+            "project checkout or install layout."
+        ),
+    )
     return parser
 
 
@@ -62,8 +72,15 @@ def resolve_output_path(output_path: Path | None) -> Path:
         return Path(handle.name).resolve()
 
 
-def validate_args(args: argparse.Namespace) -> tuple[Path, Path | None]:
-    """Validate parsed CLI arguments and return ``(image_dir, output_path)``."""
+def validate_args(
+    args: argparse.Namespace,
+) -> tuple[Path, Path | None, Path | None]:
+    """Validate parsed CLI arguments.
+
+    Returns:
+        ``(image_dir, output_path, stack_path)`` with paths expanded and
+        resolved where applicable.
+    """
     if args.image_dir is None:
         msg = "Missing required input. Provide --dir DIR with a folder of images."
         raise LuthierError(msg)
@@ -79,7 +96,10 @@ def validate_args(args: argparse.Namespace) -> tuple[Path, Path | None]:
         if args.output_path is not None
         else None
     )
-    return image_dir, output_path
+    stack_path = (
+        args.stack_path.expanduser().resolve() if args.stack_path is not None else None
+    )
+    return image_dir, output_path, stack_path
 
 
 def run(argv: Sequence[str] | None = None) -> int:
@@ -87,12 +107,19 @@ def run(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(list(argv) if argv is not None else None)
     try:
-        image_dir, requested_output = validate_args(args)
+        image_dir, requested_output, stack_path = validate_args(args)
         output_path = resolve_output_path(requested_output)
-        reconstruct_from_directory(image_dir, output_path=output_path)
+        reconstruct_from_directory(
+            image_dir,
+            output_path=output_path,
+            stack_path=stack_path,
+        )
     except NotImplementedPipelineError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return EXIT_NOT_IMPLEMENTED
+    except (FileNotFoundError, ValueError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return EXIT_ERROR
     except LuthierError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return EXIT_ERROR
