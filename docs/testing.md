@@ -46,9 +46,10 @@ Do not implement reconstruction stages without a failing test linked to an
 | `tests/test_cli.py` | AC-CLI-01 … AC-CLI-06 | Active (framework) |
 | `tests/test_models.py` | Domain invariants | Active |
 | `tests/test_images.py` | AC-IN-01, AC-IN-02 | Active |
-| `tests/test_pointcloud.py` | AC-OUT-01, AC-OUT-02 | Red (not implemented) |
-| `tests/test_pipeline.py` | AC-REC-* stubs, not-implemented | Red |
-| `tests/test_acceptance.py` | AC-REC-01 … AC-REC-04 | Skipped until golden data |
+| `tests/test_pointcloud.py` | AC-OUT-01, AC-OUT-02 | Active |
+| `tests/test_pipeline.py` | AC-REC-02, integration | Active |
+| `tests/test_postprocess.py` | Post-process filters | Active |
+| `tests/test_acceptance.py` | AC-REC-01 … AC-REC-04 | Active (CI fetches golden data) |
 
 ---
 
@@ -141,8 +142,8 @@ The golden `README.md` must state:
 
 `tests/test_acceptance.py` skips when fewer than 10 supported images are in
 `tests/data/golden/images/`. The `.gitkeep` placeholder alone does **not** count
-as golden data. When images are present but M1 is not implemented, acceptance
-tests **xfail** (expected failure) instead of failing CI.
+as golden data. CI downloads the COLMAP south-building subset on pull requests
+and runs `pytest -m acceptance`.
 
 ---
 
@@ -185,7 +186,7 @@ the verification of **AC-QG-01**.
 | `pytest` + coverage `fail_under` | Unit + integration tests; **≥ 80%** line coverage (AC-QG-01, AC-QG-02) |
 | `python scripts/check_governance.py` | Method enforcement: traceability, stack/code consistency, single constitution |
 | `luthier --help` | AC-CLI-01 smoke |
-| (future) `pytest -m acceptance` | AC-REC-* on golden data (no coverage gate; unit job enforces 80%) |
+| `pytest -m acceptance` (PR job) | AC-REC-* on golden data (no coverage gate) |
 
 See [.github/workflows/ci.yml](../.github/workflows/ci.yml).
 

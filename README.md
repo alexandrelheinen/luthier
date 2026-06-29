@@ -17,11 +17,10 @@ luthier is a photogrammetry project shipped as two faces of one engine:
 Both reconstruct a **colored 3D point cloud** from a folder of overlapping
 images.
 
-> **Project status — v0.2.0 (framework):** this release ships the
-> **specification, CLI/library framework, pluggable algorithm stack, and tests**.
-> The reconstruction pipeline itself is **not implemented yet**: the CLI exits
-> with code `2` and the Python API raises `NotImplementedPipelineError`. Code
-> samples below describe the **target** behavior unless noted otherwise.
+> **Project status — v0.3.0 (M1):** sparse Structure-from-Motion reconstruction
+> from a local image directory to a colored binary PLY is **implemented**
+> (pycolmap + Open3D post-processing). Install with
+> `pip install -e ".[dev,reconstruction]"`.
 
 | Document | Description |
 | --- | --- |
@@ -34,7 +33,7 @@ images.
 
 ---
 
-## What it does (target behavior)
+## What it does
 
 ```text
   photos/                                          scene.ply
@@ -235,7 +234,7 @@ python -m luthier --help
 | --- | --- |
 | `0` | Success |
 | `1` | Invalid input or reconstruction error |
-| `2` | Pipeline not yet implemented (current state until M1) |
+| `2` | Reserved for unimplemented pipeline stages |
 
 ---
 
@@ -403,8 +402,8 @@ pytest -m acceptance
 
 | Milestone | Status |
 | --- | --- |
-| v0.2.0 — Spec, CLI framework, tests | **Current** |
-| M1 — Sparse SfM → PLY | Planned |
+| v0.3.0 — Spec, CLI framework, tests | **Shipped** |
+| M1 — Sparse SfM → PLY | **Current** |
 | M2 — Denser point cloud | Planned |
 | M3 — Second input source | Planned |
 
