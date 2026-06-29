@@ -299,7 +299,7 @@ Criteria are verified by automated tests described in [testing.md](testing.md).
 
 ### 10.5 Quality gates (repository)
 
-- **AC-QG-01:** `black --check`, `ruff check`, `mypy`, and `pytest` shall pass on all supported Python versions in CI.
+- **AC-QG-01:** `black --check`, `ruff check`, `mypy`, and `pytest` shall pass on Python 3.12 in CI.
 - **AC-QG-02:** When CI runs unit tests with coverage, total line coverage of `luthier` shall be **≥ 80%** (threshold in `pyproject.toml` → `[tool.coverage.report]` `fail_under`).
 
 ---
@@ -308,7 +308,7 @@ Criteria are verified by automated tests described in [testing.md](testing.md).
 
 | Constraint | Source |
 | --- | --- |
-| Python ≥ 3.10 | `pyproject.toml` |
+| Python 3.12 | `pyproject.toml`, `.python-version` |
 | Strict typing on public API | `CONTRIBUTING.md`, mypy strict |
 | No new runtime dependencies until reconstruction milestone (justified in PR) | `CONTRIBUTING.md` |
 | SDD → V-cycle → TDD workflow | `CONTRIBUTING.md` |
@@ -338,6 +338,7 @@ Install: `pip install luthier` (dependencies in `[project.dependencies]`) or
 | --- | --- | --- |
 | 0.2.0 | 2026-06-24 | Initial photogrammetry specification; local `--dir` input; PLY output; CloudCompare viewer; CLI and API stubs |
 | 0.3.0 | 2026-06-24 | Step 1 decisions closed; pycolmap backend; 80% unit-test coverage gate — see [decisions.md](decisions.md) |
+| 0.3.1 | 2026-06-29 | Single supported Python: 3.12 only (AD-13); CI matrix removed |
 
 ---
 

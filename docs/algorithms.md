@@ -444,7 +444,7 @@ Each stage maps to a concrete package, install command, and the luthier
 | `output.serializer` | stdlib `struct` | — | `luthier.io.write_point_cloud` (contract defined) |
 
 All M1 algorithm work runs through **pycolmap**, which ships binary wheels on
-Linux/macOS/Windows for CPython 3.10–3.13, so no separate COLMAP build is
+Linux/macOS/Windows for CPython 3.12 (project default; see AD-13), so no separate COLMAP build is
 required for the default path ([AD-03](decisions.md#ad-03--sfm-backend-was-od-03),
 [AD-04](decisions.md#ad-04--runtime-dependencies-m1)).
 

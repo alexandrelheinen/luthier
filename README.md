@@ -3,7 +3,7 @@
 **Photogrammetry from photographs to 3D point clouds.**
 
 [![CI](https://github.com/alexandrelheinen/luthier/actions/workflows/ci.yml/badge.svg)](https://github.com/alexandrelheinen/luthier/actions/workflows/ci.yml)
-[![Python](https://img.shields.io/badge/python-3.10%E2%80%933.13-blue)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -189,12 +189,12 @@ Further detail: [docs/architecture.md §10](docs/architecture.md#10-config-drive
 
 ## Installation
 
-Requires **Python 3.10+**.
+Requires **Python 3.12** (see `.python-version`).
 
 ```bash
-python -m venv .venv
+python3.12 -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
+pip install -e ".[dev,reconstruction]"
 ```
 
 After installation the `luthier` command is available on your `PATH`.

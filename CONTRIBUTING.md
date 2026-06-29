@@ -21,12 +21,12 @@ This document is the single source of truth for how humans and AI agents contrib
 
 ## Development setup
 
-Requirements: Python 3.10 or newer.
+Requirements: Python 3.12 (see `.python-version` and `pyproject.toml`).
 
 ```bash
-python -m venv .venv
+python3.12 -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
+pip install -e ".[dev,reconstruction]"
 ```
 
 Run the same checks CI runs locally before opening or updating a pull request:
@@ -202,7 +202,7 @@ disabled:
   milestone such as M1, or an environmental precondition such as missing golden
   images). Markers are validated with `--strict-markers` / `--strict-config`.
 - Do not lower or remove a quality gate (coverage `fail_under`, lint rule
-  selection, the Python matrix) to make a change pass. Changing a gate requires a
+  selection, the supported Python version) to make a change pass. Changing a gate requires a
   matching update to [docs/decisions.md](docs/decisions.md) and a note in the PR.
 
 ## Unitary commits
@@ -270,7 +270,7 @@ CI enforces the following on every push to `main` and on every pull request:
 | **mypy** | Static type checking (`strict`) | `mypy` |
 | **pytest** | Unit tests and coverage report (≥ 80% line coverage on `luthier`; see `fail_under` in `pyproject.toml`) | `pytest --cov=luthier --cov-report=term-missing` |
 
-All checks must pass on all supported Python versions in the CI matrix before merge.
+All checks must pass on Python 3.12 in CI before merge.
 
 Configuration lives in `pyproject.toml`. Do not add duplicate tool config in standalone files unless a maintainer approves an exception.
 
@@ -293,7 +293,7 @@ Each methodology rule maps to an automated check and the CI job that runs it.
 | Typed detailed design | `mypy` (strict) | `quality` |
 | Unit + integration tests pass | `pytest` (strict markers/config) | `quality` |
 | Coverage ≥ threshold (AC-QG-02) | `pytest --cov` + `fail_under` | `quality` |
-| All supported Pythons (AC-QG-01) | `quality` matrix `3.10–3.13` | `quality` |
+| Supported Python (AC-QG-01) | `quality` job on Python 3.12 | `quality` |
 | SDD artifacts exist | presence checks for `docs/*.md`, `README.md` | `governance` |
 | Single constitution (no duplicate guideline files) | guard against `AGENTS.md`, `.cursor/rules/`, `CLAUDE.md`, `.github/copilot-instructions.md` | `governance` |
 | Requirement traceability (every `AC-*` verified) | `scripts/check_governance.py` | `governance` |
@@ -341,7 +341,7 @@ SDD → V-cycle → TDD flow checkable rather than aspirational.
       mapping (traceability check passes).
 - [ ] Unitary, Conventional commits; branch named `<type>/<slug>`.
 - [ ] All required CI jobs green (`quality`, `governance`, and `acceptance` when
-      applicable) on the full Python matrix.
+      applicable) on Python 3.12.
 - [ ] Docs updated when behavior, architecture, or the algorithm stack changed
       (`specification.md`, `architecture.md`, `testing.md`, `decisions.md`,
       `algorithms.md`, `README.md` as relevant).
@@ -349,7 +349,7 @@ SDD → V-cycle → TDD flow checkable rather than aspirational.
 
 ## Pull request workflow
 
-1. Branch from `main` with a descriptive name (e.g. `feat/add-parser`, `ci/matrix-3.13`).
+1. Branch from `main` with a descriptive name (e.g. `feat/add-parser`, `ci/single-python`).
 2. Make **unitary commits** as you work.
 3. Push the branch and open a PR against `main`.
 4. PR description must include:
@@ -469,7 +469,7 @@ Every contributor (human or agent) must confirm before merge:
 - [ ] `mypy` passes.
 - [ ] `pytest` passes with coverage for touched code.
 - [ ] `python scripts/check_governance.py` passes.
-- [ ] CI is green on all matrix Python versions (`quality`, `governance`, and `acceptance` when applicable).
+- [ ] CI is green on Python 3.12 (`quality`, `governance`, and `acceptance` when applicable).
 - [ ] No quality gate was weakened to pass.
 - [ ] No secrets, credentials, or generated junk committed.
 - [ ] Public API changes are typed and documented if user-facing.
