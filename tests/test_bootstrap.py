@@ -29,6 +29,7 @@ def test_load_builtin_algorithms_populates_registry() -> None:
     assert "opencv_decode" in registered_algorithms("io")
     assert "colmap_sift" in registered_algorithms("features")
     assert "colmap_incremental" in registered_algorithms("reconstruction")
+    assert "colmap_reprojection_filter" in registered_algorithms("postprocess")
     assert "statistical_outlier_removal" in registered_algorithms("postprocess")
     assert "ply_binary_le" in registered_algorithms("output")
 

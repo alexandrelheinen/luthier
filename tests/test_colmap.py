@@ -67,6 +67,26 @@ def test_run_incremental_sfm_raises_when_no_model(tmp_path: Path) -> None:
         run_incremental_sfm(database_path, images, tmp_path / "sparse")
 
 
+def test_reconstruction_to_point_cloud_filters_by_reprojection_error(
+    tmp_path: Path,
+) -> None:
+    image_dir = tmp_path / "photos"
+    _write_overlapping_images(image_dir, 5)
+    images = prepare_image_set(image_dir)
+    database_path = tmp_path / "database.db"
+    extract_features(database_path, images)
+    match_features(database_path)
+    reconstruction = run_incremental_sfm(database_path, images, tmp_path / "sparse")
+
+    unfiltered = reconstruction_to_point_cloud(reconstruction)
+    filtered = reconstruction_to_point_cloud(
+        reconstruction,
+        max_reprojection_error=0.001,
+    )
+
+    assert filtered.count < unfiltered.count
+
+
 def test_reconstruction_to_point_cloud_raises_when_empty() -> None:
     import pycolmap
 
