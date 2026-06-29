@@ -29,6 +29,7 @@ images.
 | [docs/architecture.md](docs/architecture.md) | System design, **algorithm stack** (§9), module layout |
 | [docs/algorithms.md](docs/algorithms.md) | Algorithm choices, pros/cons, OSS libraries per layer |
 | [docs/testing.md](docs/testing.md) | TDD strategy and test traceability |
+| [docs/m1-demo.md](docs/m1-demo.md) | **M1 visual demo** (golden dataset → PLY, images, video) |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Development workflow and quality gates |
 
 ---
@@ -51,6 +52,15 @@ images.
 2. Run Structure-from-Motion and related stages via the configured algorithm stack.
 3. Write a **binary PLY** point cloud (`--output` or a temporary file).
 4. Open the result in an external viewer — **[CloudCompare](https://www.cloudcompare.org/)** is recommended.
+
+**Example output** on the public [COLMAP South Building](https://colmap.github.io/datasets.html)
+golden set (20 photos → ~5k colored points):
+
+| Input (sample) | Reconstructed cloud |
+| --- | --- |
+| ![South Building inputs](docs/assets/m1-demo/south-building-input-montage.jpg) | ![South Building point cloud](docs/assets/m1-demo/south-building-front.png) |
+
+Full demo page: [docs/m1-demo.md](docs/m1-demo.md) — includes PLY, orbit video, and reproduction steps.
 
 A **second input source** (remote URLs, manifests, etc.) will be added in a
 future release without breaking the local workflow.
@@ -406,6 +416,9 @@ pytest
 # Fetch COLMAP golden images, then run acceptance tests
 ./scripts/fetch_golden_colmap.sh
 pytest -m acceptance
+
+# Regenerate committed documentation assets (docs/assets/m1-demo/)
+python scripts/generate_m1_doc_artifacts.py
 ```
 
 ---
