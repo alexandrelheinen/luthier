@@ -74,6 +74,7 @@ def test_reconstruction_scene_exposes_point_cloud() -> None:
     cloud = PointCloud(points=(Point3D(0.0, 0.0, 0.0),))
     scene = ReconstructionScene(point_cloud=cloud)
     assert scene.point_cloud.count == 1
+    assert scene.reconstruction is None
 
 
 def test_feature_set_stores_workspace_paths(tmp_path: Path) -> None:

@@ -10,6 +10,7 @@ ALGORITHM_MODULES = [
     ("luthier.io.opencv_decode", "opencv_decode"),
     ("luthier.features.colmap_sift", "colmap_sift"),
     ("luthier.reconstruction.colmap_incremental", "colmap_incremental"),
+    ("luthier.postprocess.colmap_reprojection_filter", "colmap_reprojection_filter"),
     ("luthier.postprocess.statistical_outlier_removal", "statistical_outlier_removal"),
     ("luthier.output.ply_binary_le", "ply_binary_le"),
 ]
