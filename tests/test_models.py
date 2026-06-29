@@ -6,7 +6,15 @@ from pathlib import Path
 
 import pytest
 
-from luthier.models import ImageSet, LocalImageInput, Point3D, PointCloud, PreparedImage
+from luthier.models import (
+    FeatureSet,
+    ImageSet,
+    LocalImageInput,
+    Point3D,
+    PointCloud,
+    PreparedImage,
+    ReconstructionScene,
+)
 
 
 def test_point3d_defaults_to_neutral_gray() -> None:
@@ -60,3 +68,19 @@ def test_image_set_count() -> None:
     )
     image_set = ImageSet(images=(image,), source_dir=Path("/tmp"))
     assert image_set.count == 1
+
+
+def test_reconstruction_scene_exposes_point_cloud() -> None:
+    cloud = PointCloud(points=(Point3D(0.0, 0.0, 0.0),))
+    scene = ReconstructionScene(point_cloud=cloud)
+    assert scene.point_cloud.count == 1
+
+
+def test_feature_set_stores_workspace_paths(tmp_path: Path) -> None:
+    feature_set = FeatureSet(
+        database_path=tmp_path / "database.db",
+        image_dir=tmp_path / "images",
+        image_names=("a.png", "b.png"),
+        workspace_dir=tmp_path,
+    )
+    assert feature_set.image_names == ("a.png", "b.png")
