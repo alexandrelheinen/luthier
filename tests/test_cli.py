@@ -12,6 +12,7 @@ import pytest
 
 from luthier.cli import (
     EXIT_ERROR,
+    EXIT_NOT_IMPLEMENTED,
     build_parser,
     resolve_output_path,
     run,
@@ -25,6 +26,7 @@ def test_help_mentions_dir_and_output() -> None:
     help_text = parser.format_help()
     assert "--dir" in help_text
     assert "--output" in help_text
+    assert "--stack" in help_text
 
 
 def test_main_module_entry_point_help() -> None:
@@ -109,9 +111,89 @@ def test_validate_args_resolves_output(
     output = tmp_path / "out.ply"
     parser = build_parser()
     args = parser.parse_args(["--dir", str(image_dir), "--output", str(output)])
-    parsed_dir, parsed_output = validate_args(args)
+    parsed_dir, parsed_output, parsed_stack = validate_args(args)
     assert parsed_dir == image_dir.resolve()
     assert parsed_output == output.resolve()
+    assert parsed_stack is None
+
+
+def test_validate_args_resolves_stack_path(tmp_path: Path) -> None:
+    image_dir = tmp_path / "photos"
+    image_dir.mkdir()
+    (image_dir / "a.jpg").write_bytes(b"\xff\xd8\xff")
+    stack_path = tmp_path / "custom-stack.yml"
+    stack_path.write_text(
+        "version: 1\nname: test\nlayers: {}\n",
+        encoding="utf-8",
+    )
+    parser = build_parser()
+    args = parser.parse_args(["--dir", str(image_dir), "--stack", str(stack_path)])
+    parsed_dir, _, parsed_stack = validate_args(args)
+    assert parsed_dir == image_dir.resolve()
+    assert parsed_stack == stack_path.resolve()
+
+
+def test_missing_stack_file_exits_with_error(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """AC-CLI-06."""
+    image_dir = tmp_path / "photos"
+    image_dir.mkdir()
+    array = np.zeros((32, 32, 3), dtype=np.uint8)
+    cv2.imwrite(
+        str(image_dir / "a.png"),
+        cv2.cvtColor(array, cv2.COLOR_RGB2BGR),
+    )
+    cv2.imwrite(
+        str(image_dir / "b.png"),
+        cv2.cvtColor(array, cv2.COLOR_RGB2BGR),
+    )
+    code = run(
+        [
+            "--dir",
+            str(image_dir),
+            "--stack",
+            str(tmp_path / "missing-stack.yml"),
+            "--output",
+            str(tmp_path / "out.ply"),
+        ]
+    )
+    captured = capsys.readouterr()
+    assert code == EXIT_ERROR
+    assert "error:" in captured.err
+
+
+def test_not_implemented_pipeline_exits_with_code_two(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Reserved exit code 2 for NotImplementedPipelineError."""
+    from luthier.exceptions import NotImplementedPipelineError
+
+    image_dir = tmp_path / "photos"
+    image_dir.mkdir()
+    array = np.zeros((32, 32, 3), dtype=np.uint8)
+    cv2.imwrite(
+        str(image_dir / "a.png"),
+        cv2.cvtColor(array, cv2.COLOR_RGB2BGR),
+    )
+    cv2.imwrite(
+        str(image_dir / "b.png"),
+        cv2.cvtColor(array, cv2.COLOR_RGB2BGR),
+    )
+
+    def _raise_not_implemented(*_args: object, **_kwargs: object) -> None:
+        raise NotImplementedPipelineError("dense reconstruction is not available")
+
+    monkeypatch.setattr(
+        "luthier.cli.reconstruct_from_directory", _raise_not_implemented
+    )
+    code = run(["--dir", str(image_dir), "--output", str(tmp_path / "out.ply")])
+    captured = capsys.readouterr()
+    assert code == EXIT_NOT_IMPLEMENTED
+    assert "not available" in captured.err.lower()
 
 
 def test_pipeline_single_image_exit_code(
