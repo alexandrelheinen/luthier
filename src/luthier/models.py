@@ -63,6 +63,23 @@ class ImageSet:
 
 
 @dataclass(frozen=True, slots=True)
+class FeatureSet:
+    """COLMAP feature database and workspace metadata for reconstruction."""
+
+    database_path: Path
+    image_dir: Path
+    image_names: tuple[str, ...]
+    workspace_dir: Path
+
+
+@dataclass(frozen=True, slots=True)
+class ReconstructionScene:
+    """Sparse reconstruction result before post-processing."""
+
+    point_cloud: PointCloud
+
+
+@dataclass(frozen=True, slots=True)
 class LocalImageInput:
     """Local filesystem input: a directory of image files."""
 
