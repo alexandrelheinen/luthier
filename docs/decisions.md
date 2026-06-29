@@ -156,6 +156,17 @@ COLMAP install required for the default path.
 
 ---
 
+## AD-13 — Supported Python version
+
+| Field | Decision |
+| --- | --- |
+| **Version** | **CPython 3.12** only (`>=3.12,<3.13` in `pyproject.toml`) |
+| **Rationale** | pycolmap and reconstruction deps ship reliable wheels on 3.12; a single CI target reduces breakage and maintenance while M1 is landing |
+| **Future** | Additional versions (e.g. 3.13) may be added in a follow-up once reconstruction CI is stable on each |
+| **Local dev** | `.python-version` pins `3.12` for pyenv / similar tools |
+
+---
+
 ## Decision log
 
 | ID | Date | Summary |
@@ -163,3 +174,4 @@ COLMAP install required for the default path.
 | AD-01 … AD-07 | 2026-06-24 | Step 1 closed; pycolmap backend; 80% coverage gate |
 | AD-08 | 2026-06-24 | `stack.yml` + Strategy/Registry; `{algorithm_name}.py` modules |
 | AD-09 … AD-12 | 2026-06-24 | Scalability: plugin discovery, observability, artifact cache, run report |
+| AD-13 | 2026-06-29 | Single supported Python: 3.12 only; CI matrix removed |

@@ -7,7 +7,7 @@ name = "luthier"
 version = "0.2.0"
 description = "Photogrammetry library: reconstruct 3D point clouds from photographs."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12,<3.13"
 license = { file = "LICENSE" }
 authors = [{ name = "Alexandre Loeblein Heinen" }]
 keywords = [
@@ -24,10 +24,7 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Image Recognition",
     "Topic :: Multimedia :: Graphics :: 3D Modeling",
     "Typing :: Typed",
@@ -79,10 +76,10 @@ markers = [
 
 [tool.black]
 line-length = 88
-target-version = ["py310"]
+target-version = ["py312"]
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py312"
 line-length = 88
 src = ["src", "tests"]
 
@@ -93,7 +90,7 @@ select = ["E", "W", "F", "I", "UP", "B", "SIM"]
 known-first-party = ["luthier"]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.12"
 strict = true
 packages = ["luthier", "tests"]
 mypy_path = "src"

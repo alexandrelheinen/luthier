@@ -174,8 +174,8 @@ pytest --cov=luthier --cov-report=term-missing
 
 ## 9. CI mapping
 
-The whole `quality` matrix (`black`, `ruff`, `mypy`, `pytest`) passing on every
-supported Python version is the verification of **AC-QG-01**.
+The `quality` job (`black`, `ruff`, `mypy`, `pytest`) passing on Python 3.12 is
+the verification of **AC-QG-01**.
 
 | CI step | V-cycle right side |
 | --- | --- |
