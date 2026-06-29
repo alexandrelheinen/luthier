@@ -36,7 +36,7 @@ def test_main_module_entry_point_help() -> None:
         text=True,
     )
     assert result.returncode == 0
-    assert "0.2.0" in result.stdout
+    assert "0.3.0" in result.stdout
 
 
 def test_installed_entry_point_help() -> None:
