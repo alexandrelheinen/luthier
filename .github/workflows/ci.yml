@@ -29,7 +29,7 @@ jobs:
           cache-dependency-path: pyproject.toml
 
       - name: Install package and dev tools
-        run: pip install -e ".[dev]"
+        run: pip install -e ".[dev,reconstruction]"
 
       - name: Check formatting with Black
         run: black --check src tests
@@ -66,7 +66,7 @@ jobs:
           cache-dependency-path: pyproject.toml
 
       - name: Install package and dev tools
-        run: pip install -e ".[dev]"
+        run: pip install -e ".[dev,reconstruction]"
 
       - name: Enforce method invariants (traceability, stack/code, constitution)
         run: python scripts/check_governance.py
@@ -135,7 +135,7 @@ jobs:
           cache-dependency-path: pyproject.toml
 
       - name: Install package and dev tools
-        run: pip install -e ".[dev]"
+        run: pip install -e ".[dev,reconstruction]"
 
       - name: Run acceptance tests when golden data is present
         run: |
