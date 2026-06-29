@@ -25,7 +25,15 @@ ENTRY_POINT_GROUP = "luthier.algorithms"
 _BUILTIN_MODULES: dict[str, tuple[str, ...]] = {
     "io": ("luthier.io.pathlib_discover", "luthier.io.opencv_decode"),
     "features": ("luthier.features.colmap_sift",),
-    "reconstruction": ("luthier.reconstruction.colmap_incremental",),
+    "reconstruction": (
+        "luthier.reconstruction.colmap_exhaustive_pairs",
+        "luthier.reconstruction.colmap_exhaustive_match",
+        "luthier.reconstruction.colmap_ransac",
+        "luthier.reconstruction.colmap_incremental",
+        "luthier.reconstruction.colmap_bundle_adjustment",
+        "luthier.reconstruction.colmap_triangulation",
+        "luthier.reconstruction.colmap_median_rgb",
+    ),
     "postprocess": (
         "luthier.postprocess.colmap_reprojection_filter",
         "luthier.postprocess.statistical_outlier_removal",
