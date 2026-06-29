@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 
 @dataclass(frozen=True, slots=True)
@@ -34,6 +35,31 @@ class PointCloud:
     def count(self) -> int:
         """Return the number of points in the cloud."""
         return len(self.points)
+
+
+@dataclass(frozen=True, slots=True)
+class PreparedImage:
+    """One decoded raster image ready for feature extraction."""
+
+    id: int
+    path: Path
+    width: int
+    height: int
+    pixels: Any
+    """RGB pixel array with shape ``(height, width, 3)`` and dtype ``uint8``."""
+
+
+@dataclass(frozen=True, slots=True)
+class ImageSet:
+    """Ordered collection of prepared images from a local directory."""
+
+    images: tuple[PreparedImage, ...]
+    source_dir: Path
+
+    @property
+    def count(self) -> int:
+        """Return the number of prepared images."""
+        return len(self.images)
 
 
 @dataclass(frozen=True, slots=True)

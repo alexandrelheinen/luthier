@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from luthier.models import LocalImageInput, Point3D, PointCloud
+from luthier.models import ImageSet, LocalImageInput, Point3D, PointCloud, PreparedImage
 
 
 def test_point3d_defaults_to_neutral_gray() -> None:
@@ -48,3 +48,15 @@ def test_local_image_input_rejects_file(tmp_path: Path) -> None:
     file_path.write_text("x", encoding="utf-8")
     with pytest.raises(ValueError, match="not a directory"):
         LocalImageInput(image_dir=file_path)
+
+
+def test_image_set_count() -> None:
+    image = PreparedImage(
+        id=0,
+        path=Path("/tmp/a.png"),
+        width=10,
+        height=8,
+        pixels=object(),
+    )
+    image_set = ImageSet(images=(image,), source_dir=Path("/tmp"))
+    assert image_set.count == 1
