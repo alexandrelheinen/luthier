@@ -4,8 +4,8 @@
 # backends without editing pipeline.py. See README § "Pluggable algorithm stack"
 # and docs/architecture.md §10.
 #
-# CLI (planned): luthier --dir ./photos --stack config/stack.yml
-# API (planned):  reconstruct_from_directory(..., stack=load_stack_config(...))
+# CLI (supported): luthier --dir ./photos --stack config/stack.yml
+# API (supported):  reconstruct_from_directory(..., stack_path=Path("config/stack.yml"))
 
 version: 1
 name: m1-sparse-colmap-default

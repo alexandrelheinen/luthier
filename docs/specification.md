@@ -83,13 +83,14 @@ cloud file** suitable for inspection in an external open-source viewer.
 ### 4.1 CLI
 
 ```text
-luthier --dir DIR [--output FILE]
+luthier --dir DIR [--output FILE] [--stack FILE]
 ```
 
 | Argument | Required | Description |
 | --- | --- | --- |
-| `--dir DIR` | **Yes** (v0.2.0) | Path to a directory containing input images |
+| `--dir DIR` | **Yes** | Path to a directory containing input images |
 | `--output FILE` | No | Output point cloud path. If omitted, a temporary `.ply` file is created and its path is printed to stdout on success |
+| `--stack FILE` | No | Algorithm stack YAML (defaults to `config/stack.yml` in a checkout) |
 | `--version` | No | Print version and exit |
 
 Future input flags (not implemented; reserved in planning):
@@ -278,7 +279,7 @@ Criteria are verified by automated tests described in [testing.md](testing.md).
 - **AC-CLI-03:** When the user runs `luthier --dir <missing>`, the system shall exit with code `1`.
 - **AC-CLI-04:** When the user runs `luthier --dir <valid> --output <path>`, the system shall resolve `output` to an absolute path before reconstruction.
 - **AC-CLI-05:** When the user runs `luthier --dir <valid>` without `--output`, the system shall allocate a temporary `.ply` path with prefix `luthier-`.
-- **AC-CLI-06:** When reconstruction is not implemented, the system shall exit with code `2` and a clear message on stderr.
+- **AC-CLI-06:** When the user runs `luthier --dir <valid> --stack <missing>`, the system shall exit with code `1` and print an error on stderr.
 
 ### 10.2 Input discovery
 
