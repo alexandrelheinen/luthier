@@ -73,6 +73,30 @@ class FeatureSet:
 
 
 @dataclass(frozen=True, slots=True)
+class CameraIntrinsics:
+    """Pinhole camera intrinsics for one registered image."""
+
+    model: str
+    width: int
+    height: int
+    focal_length: float
+    params: tuple[float, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class CameraPose:
+    """Estimated camera pose and intrinsics for one registered image."""
+
+    image_id: int
+    name: str
+    rotation: tuple[float, float, float, float]
+    """Unit quaternion ``(x, y, z, w)`` for the camera-from-world rotation."""
+    translation: tuple[float, float, float]
+    """Camera-from-world translation ``(tx, ty, tz)``."""
+    intrinsics: CameraIntrinsics
+
+
+@dataclass(frozen=True, slots=True)
 class ReconstructionScene:
     """Sparse reconstruction result before post-processing."""
 
@@ -101,5 +125,6 @@ class ReconstructionResult:
     """Result of a completed reconstruction run."""
 
     point_cloud: PointCloud
+    cameras: tuple[CameraPose, ...]
     output_path: Path
     source: LocalImageInput
