@@ -118,7 +118,6 @@ jobs:
 
   acceptance:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
