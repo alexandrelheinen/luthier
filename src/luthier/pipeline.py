@@ -10,6 +10,7 @@ from typing import Any
 from luthier.exceptions import InvalidInputError
 from luthier.io.prepare import prepare_image_set
 from luthier.models import (
+    CameraPose,
     ImageSet,
     LocalImageInput,
     PointCloud,
@@ -17,6 +18,7 @@ from luthier.models import (
     ReconstructionResult,
     ReconstructionScene,
 )
+from luthier.reconstruction.colmap import reconstruction_to_cameras
 from luthier.stack.bootstrap import load_algorithms
 from luthier.stack.config import StackConfig, load_stack_config
 from luthier.stack.registry import resolve
@@ -47,10 +49,12 @@ def reconstruct_from_directory(
     workspace_dir = Path(tempfile.mkdtemp(prefix="luthier-workspace-"))
     feature_set = _extract_features(stack, image_set, workspace_dir)
     scene = _reconstruct_scene(stack, feature_set, image_set)
+    cameras = _extract_cameras(scene)
     point_cloud = _postprocess_scene(stack, scene)
     resolved_output = _write_point_cloud(stack, point_cloud, output_path)
     return ReconstructionResult(
         point_cloud=point_cloud,
+        cameras=cameras,
         output_path=resolved_output,
         source=source,
     )
@@ -131,6 +135,14 @@ def _reconstruct_scene(
         msg = "Reconstruction backend must return a ReconstructionScene."
         raise TypeError(msg)
     return scene
+
+
+def _extract_cameras(scene: ReconstructionScene) -> tuple[CameraPose, ...]:
+    reconstruction = scene.reconstruction
+    if reconstruction is None:
+        msg = "Reconstruction backend did not attach a reconstruction handle."
+        raise TypeError(msg)
+    return reconstruction_to_cameras(reconstruction)
 
 
 def _postprocess_scene(stack: StackConfig, scene: ReconstructionScene) -> PointCloud:
