@@ -13,7 +13,14 @@ from typing import Any
 import pycolmap
 
 from luthier.exceptions import ReconstructionError
-from luthier.models import ImageSet, Point3D, PointCloud, ReconstructionScene
+from luthier.models import (
+    CameraIntrinsics,
+    CameraPose,
+    ImageSet,
+    Point3D,
+    PointCloud,
+    ReconstructionScene,
+)
 
 __all__ = [
     "build_extraction_options",
@@ -21,6 +28,7 @@ __all__ = [
     "build_matching_options",
     "extract_features",
     "match_features",
+    "reconstruction_to_cameras",
     "reconstruction_to_point_cloud",
     "run_incremental_sfm",
     "scene_from_reconstruction",
@@ -149,6 +157,48 @@ def reconstruction_to_point_cloud(
         msg = "Sparse reconstruction contains no triangulated 3D points."
         raise ReconstructionError(msg)
     return PointCloud(points=tuple(points))
+
+
+def reconstruction_to_cameras(
+    reconstruction: pycolmap.Reconstruction,
+) -> tuple[CameraPose, ...]:
+    """Convert a pycolmap reconstruction to registered camera poses."""
+    cameras: list[CameraPose] = []
+    for image_id in sorted(reconstruction.images):
+        image = reconstruction.images[image_id]
+        camera = reconstruction.cameras[image.camera_id]
+        pose = image.cam_from_world()
+        quaternion = tuple(float(value) for value in pose.rotation.quat)
+        translation = tuple(float(value) for value in pose.translation)
+        intrinsics = CameraIntrinsics(
+            model=camera.model.name,
+            width=int(camera.width),
+            height=int(camera.height),
+            focal_length=float(camera.focal_length),
+            params=tuple(float(value) for value in camera.params),
+        )
+        cameras.append(
+            CameraPose(
+                image_id=int(image_id),
+                name=str(image.name),
+                rotation=(
+                    quaternion[0],
+                    quaternion[1],
+                    quaternion[2],
+                    quaternion[3],
+                ),
+                translation=(
+                    translation[0],
+                    translation[1],
+                    translation[2],
+                ),
+                intrinsics=intrinsics,
+            )
+        )
+    if not cameras:
+        msg = "Sparse reconstruction contains no registered camera poses."
+        raise ReconstructionError(msg)
+    return tuple(cameras)
 
 
 def scene_from_reconstruction(
