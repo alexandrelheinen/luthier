@@ -77,6 +77,8 @@ class ReconstructionScene:
     """Sparse reconstruction result before post-processing."""
 
     point_cloud: PointCloud
+    reconstruction: Any = None
+    """Optional backend handle (e.g. pycolmap ``Reconstruction``) for filters."""
 
 
 @dataclass(frozen=True, slots=True)
