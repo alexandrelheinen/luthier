@@ -49,14 +49,14 @@ cloud file** suitable for inspection in an external open-source viewer.
 | Documentation | README, architecture, this specification, testing strategy |
 | Tests | Specification tests (unit + integration + acceptance scaffolding) |
 
-### 2.2 In scope (future implementation milestones)
+### 2.2 In scope (M1 — sparse SfM, v0.3.0)
 
-| Milestone | Deliverable |
-| --- | --- |
-| M1 — Sparse SfM | Camera poses + sparse colored point cloud |
-| M2 — Dense / MVS | Denser point cloud (optional refinement stage) |
-| M3 — Second input source | Non-local image source (TBD by follow-up spec) |
-| M4 — Formats | Optional LAZ/PCD export |
+| Milestone | Deliverable | Status |
+| --- | --- | --- |
+| M1 — Sparse SfM | Camera poses + sparse colored point cloud | **Implemented** |
+| M2 — Dense / MVS | Denser point cloud (optional refinement stage) | Planned |
+| M3 — Second input source | Non-local image source (TBD by follow-up spec) | Planned |
+| M4 — Formats | Optional LAZ/PCD export | Planned |
 
 ### 2.3 Out of scope (v0.2.0)
 
@@ -117,8 +117,9 @@ from luthier import reconstruct_from_directory
 result = reconstruct_from_directory(
     Path("/data/photos"),
     output_path=Path("/data/out/scene.ply"),
+    stack_path=Path("config/stack.yml"),  # optional
 )
-print(result.output_path, result.point_cloud.count)
+print(result.output_path, result.point_cloud.count, len(result.cameras))
 ```
 
 ---
@@ -212,18 +213,18 @@ listed viewers import it without plugins.
 
 ---
 
-## 7. Processing pipeline (planned)
+## 7. Processing pipeline (M1)
 
-Implementation follows this logical pipeline. Stages are not required to be
-separate CLI commands in v0.2.0.
+Implementation follows this logical pipeline. Stages are orchestrated by
+`pipeline.py` using `config/stack.yml`; they are not separate CLI commands.
 
 ```text
 Images (--dir)
-    → discover & validate
-    → feature extraction & matching
-    → Structure from Motion (sparse)
-    → optional dense fusion (later milestone)
-    → colored PointCloud model
+    → discover & decode (IO)
+    → feature extraction (COLMAP SIFT)
+    → matching, verification, incremental SfM, coloring
+    → geometric filter + outlier removal (post-process)
+    → colored PointCloud model + registered camera poses
     → write binary PLY (--output)
 ```
 
@@ -238,11 +239,11 @@ Failure at any stage raises `ReconstructionError` (API) or exits with code `1`
 | --- | --- |
 | `0` | Success; output path printed to stdout |
 | `1` | User error or reconstruction failure (`LuthierError` subclasses) |
-| `2` | Pipeline not yet implemented (`NotImplementedPipelineError`) |
+| `2` | Reserved for unimplemented pipeline stages (`NotImplementedPipelineError`) |
 
 ---
 
-## 9. Public Python API (v0.2.0)
+## 9. Public Python API (v0.3.0)
 
 ### 9.1 Package entry (`luthier`)
 
@@ -256,7 +257,7 @@ Failure at any stage raises `ReconstructionError` (API) or exits with code `1`
 | `LuthierError` | exception | Base error |
 | `InvalidInputError` | exception | Bad user input |
 | `ReconstructionError` | exception | Pipeline failure |
-| `NotImplementedPipelineError` | exception | Stub / not yet built |
+| `NotImplementedPipelineError` | exception | Reserved / future pipeline stages |
 
 ### 9.2 Submodule `luthier.io`
 
@@ -339,9 +340,8 @@ Install: `pip install luthier` (dependencies in `[project.dependencies]`) or
 | Version | Date | Change |
 | --- | --- | --- |
 | 0.2.0 | 2026-06-24 | Initial photogrammetry specification; local `--dir` input; PLY output; CloudCompare viewer; CLI and API stubs |
-| 0.3.0 | 2026-06-24 | Step 1 decisions closed; pycolmap backend; 80% unit-test coverage gate — see [decisions.md](decisions.md) |
+| 0.3.0 | 2026-06-29 | M1 sparse SfM pipeline; camera poses on `ReconstructionResult`; post-process filters; golden acceptance in CI |
 | 0.3.1 | 2026-06-29 | Single supported Python: 3.12 only (AD-13); CI matrix removed |
-| 0.3.0 | 2026-06-29 | M1 sparse SfM pipeline; post-process filters; golden acceptance in CI |
 
 ---
 

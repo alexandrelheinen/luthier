@@ -85,7 +85,7 @@ discover_images          pycolmap incremental_mapping      write_point_cloud
 | Block | Library | luthier wrapper |
 | --- | --- | --- |
 | Image paths | stdlib | `io.images.discover_images` |
-| Sparse SfM | pycolmap | `reconstruction.colmap.run_sparse_reconstruction` (planned) |
+| Sparse SfM | pycolmap | `reconstruction.colmap` + `colmap_incremental` stack backend |
 | PLY export | stdlib `struct` | `output.serialize.write_point_cloud` (via `io.pointcloud` during transition) |
 | Arrays | numpy | Convert pycolmap output → `PointCloud` |
 
@@ -102,9 +102,9 @@ discover_images          pycolmap incremental_mapping      write_point_cloud
 
 ### 3.2 `luthier.pipeline`
 
-- Single entry: `reconstruct_from_directory(image_dir, *, output_path)`.
-- Validates `LocalImageInput`, runs stages, calls `write_point_cloud`.
-- Returns `ReconstructionResult`.
+- Single entry: `reconstruct_from_directory(image_dir, *, output_path, stack_path=None)`.
+- Loads `config/stack.yml` (or custom path), runs stack-driven stages, writes PLY.
+- Returns `ReconstructionResult` with `point_cloud`, `cameras`, `output_path`, `source`.
 
 ### 3.3 `luthier.io.images`
 
@@ -123,7 +123,7 @@ discover_images          pycolmap incremental_mapping      write_point_cloud
 | `Point3D` | `x, y, z, r, g, b` |
 | `PointCloud` | `points: tuple[Point3D, ...]` |
 | `LocalImageInput` | `image_dir: Path` |
-| `ReconstructionResult` | `point_cloud`, `output_path`, `source` |
+| `ReconstructionResult` | `point_cloud`, `cameras`, `output_path`, `source` |
 
 ### 3.6 `luthier.exceptions`
 
@@ -140,11 +140,11 @@ LuthierError
 
 ## 4. Data flow (local input)
 
-1. **CLI** parses `--dir` and optional `--output`.
-2. **pipeline** constructs `LocalImageInput`.
-3. **io.images** discovers image paths.
-4. **(future)** SfM builds `PointCloud`.
-5. **io.pointcloud** writes binary PLY to `output_path`.
+1. **CLI** parses `--dir`, optional `--output`, and optional `--stack`.
+2. **pipeline** constructs `LocalImageInput` and loads `StackConfig`.
+3. **IO** discovers and decodes images into `ImageSet`.
+4. **Features / reconstruction / postprocess** build `PointCloud` and camera poses.
+5. **output** writes binary PLY to `output_path`.
 6. **CLI** prints `output_path` on success.
 
 ---
@@ -168,7 +168,7 @@ remote sources to a cache directory first).
 | Bad directory | `ValueError` / `InvalidInputError` | exit 1 |
 | No images | `InvalidInputError` | exit 1 |
 | Pipeline failure | `ReconstructionError` | exit 1 |
-| Not implemented | `NotImplementedPipelineError` | exit 2 |
+| Not implemented stage | `NotImplementedPipelineError` | exit 2 |
 
 ---
 
@@ -454,33 +454,39 @@ direction in the pipeline.
 | `PointCloud` | Post-processing | Output | Public domain type in `models.py` |
 | `ReconstructionResult` | Application | Interface | Metadata after successful run |
 
-Types marked *future* may start as `TypedDict`, dataclasses, or adapter-specific
-structs; only **`PointCloud`** and **`ReconstructionResult`** are public API
-today ([specification.md §7](specification.md#7-python-api)).
+Types marked *future* may start as adapter-specific handles on internal scene
+types; **`PointCloud`**, **`CameraPose`**, and **`ReconstructionResult`** are
+public API today ([specification.md §9](specification.md#9-public-python-api-v030)).
 
 ### 9.5 Module tree (algorithm stack target)
 
-Placeholders exist under `src/luthier/` for the long-term layout. M1 may
-implement only a subset (IO images, `reconstruction.colmap` adapter, output PLY).
+M1 implements the IO, features, reconstruction, postprocess, and output layers
+below. Optional slots (`video_frames`, `dense`, `radiometry`) remain placeholders.
 
 ```text
 src/luthier/
-  pipeline.py                 # orchestrates layers 9.3.1 → 9.3.5
-  models.py                   # PointCloud, Point3D, inputs, results
+  pipeline.py
+  models.py
   io/
-    images.py                 # discover_images (implemented)
-    sync.py                   # golden / remote cache sync (placeholder)
-    video.py                  # video → frame ImageSet (placeholder)
+    pathlib_discover.py
+    opencv_decode.py
+    prepare.py
   features/
-    extraction.py             # FeatureSet production (placeholder)
+    colmap_sift.py
   reconstruction/
-    colmap.py                 # pycolmap adapter (placeholder)
-    coloring.py               # color propagation contract (placeholder)
+    colmap.py
+    colmap_incremental.py
+    colmap_exhaustive_pairs.py
+    colmap_exhaustive_match.py
+    colmap_ransac.py
+    colmap_bundle_adjustment.py
+    colmap_triangulation.py
+    colmap_median_rgb.py
   postprocess/
-    outliers.py               # outlier rejection (placeholder)
+    colmap_reprojection_filter.py
+    statistical_outlier_removal.py
   output/
-    serialize.py              # PLY and future formats (placeholder; see io.pointcloud)
-  sfm/                        # deprecated path name — use reconstruction/ (M1)
+    ply_binary_le.py
 ```
 
 ### 9.6 Interface vs algorithm stack (summary)

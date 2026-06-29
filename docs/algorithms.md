@@ -450,13 +450,18 @@ required for the default path ([AD-03](decisions.md#ad-03--sfm-backend-was-od-03
 
 ### 7b.2 Enabling the reconstruction dependencies
 
-The runtime dependencies are specified ([spec §12](specification.md#12-dependencies-m1--approved))
-but ship as a **commented-out optional extra** in `pyproject.toml` until the M1
-PR, to keep the framework install light. The M1 implementation PR uncomments and
-installs:
+The reconstruction runtime is shipped as the **`[reconstruction]` optional extra**
+in `pyproject.toml` (numpy, OpenCV, pycolmap, Open3D). Install for development
+or CI:
 
 ```bash
-pip install -e ".[dev,reconstruction]"   # reconstruction = numpy, opencv, pycolmap
+pip install -e ".[dev,reconstruction]"
+```
+
+For end users running reconstruction from PyPI:
+
+```bash
+pip install "luthier[reconstruction]"
 ```
 
 ### 7b.3 Documentation coverage for implementation and integration
@@ -475,8 +480,7 @@ pip install -e ".[dev,reconstruction]"   # reconstruction = numpy, opencv, pycol
 
 **Conclusion:** the algorithm catalog is accurate and the documentation set is
 sufficient to implement M1 and to integrate luthier both as a library and as a
-client. The only deferred enablement is uncommenting the `reconstruction` extra
-in `pyproject.toml` at M1 (§7b.2).
+client. The `reconstruction` extra is enabled in `pyproject.toml` (§7b.2).
 
 ---
 

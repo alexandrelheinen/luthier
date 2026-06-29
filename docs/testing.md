@@ -11,7 +11,7 @@ in [CONTRIBUTING.md](../CONTRIBUTING.md).
 ```text
                     Acceptance  (AC-REC-*, golden dataset)
                    ─────────────────────────────────────
-                  Integration   (CLI → pipeline → io, stubbed SfM)
+                  Integration   (CLI → pipeline → stack → pycolmap)
                  ─────────────────────────────────────────────
                 Unit            (models, discover_images, PLY, CLI helpers)
                ───────────────────────────────────────────────────
@@ -43,13 +43,13 @@ Do not implement reconstruction stages without a failing test linked to an
 
 | Test file | Acceptance criteria | Status |
 | --- | --- | --- |
-| `tests/test_cli.py` | AC-CLI-01 … AC-CLI-06 | Active (framework) |
+| `tests/test_cli.py` | AC-CLI-01 … AC-CLI-06 | Active |
 | `tests/test_models.py` | Domain invariants | Active |
 | `tests/test_images.py` | AC-IN-01, AC-IN-02 | Active |
 | `tests/test_pointcloud.py` | AC-OUT-01, AC-OUT-02 | Active |
 | `tests/test_pipeline.py` | AC-REC-02, integration | Active |
 | `tests/test_postprocess.py` | Post-process filters | Active |
-| `tests/test_acceptance.py` | AC-REC-01 … AC-REC-04 | Active (CI fetches golden data) |
+| `tests/test_acceptance.py` | AC-REC-01 … AC-REC-05 | Active (CI fetches golden data) |
 
 ---
 
