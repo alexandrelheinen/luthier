@@ -52,6 +52,7 @@ dev = [
 reconstruction = [
     "numpy>=2.0",
     "opencv-python-headless>=4.10",
+    "open3d>=0.19",
     "pycolmap>=3.11",
 ]
 
