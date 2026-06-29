@@ -50,3 +50,20 @@ def test_reconstruct_from_directory_writes_ply(tmp_path: Path) -> None:
     assert result.output_path.is_file()
     assert result.point_cloud.count >= 1
     assert b"format binary_little_endian 1.0" in output_path.read_bytes()
+
+
+def test_reconstruct_from_directory_returns_camera_poses(tmp_path: Path) -> None:
+    """AC-REC-05."""
+    image_dir = tmp_path / "photos"
+    image_dir.mkdir()
+    _write_overlapping_images(image_dir, count=5)
+    output_path = tmp_path / "scene.ply"
+
+    result = reconstruct_from_directory(image_dir, output_path=output_path)
+
+    assert len(result.cameras) >= 2
+    assert all(camera.name for camera in result.cameras)
+    assert all(camera.intrinsics.focal_length > 0 for camera in result.cameras)
+    assert all(
+        all(value == value for value in camera.translation) for camera in result.cameras
+    )

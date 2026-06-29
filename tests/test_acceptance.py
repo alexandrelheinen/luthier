@@ -54,3 +54,5 @@ def test_result_paths_are_consistent(tmp_path: Path) -> None:
     )
     assert result.output_path == output.resolve()
     assert result.output_path.is_file()
+    assert len(result.cameras) >= MIN_GOLDEN_IMAGES
+    assert all(camera.name for camera in result.cameras)
