@@ -48,7 +48,7 @@ images.
 ```
 
 1. Read images from a **local directory** (`--dir`).
-2. Run Structure-from-Motion and related stages (planned).
+2. Run Structure-from-Motion and related stages via the configured algorithm stack.
 3. Write a **binary PLY** point cloud (`--output` or a temporary file).
 4. Open the result in an external viewer — **[CloudCompare](https://www.cloudcompare.org/)** is recommended.
 
@@ -158,7 +158,7 @@ layers:
 
 Default file: [`config/stack.yml`](config/stack.yml) (`m1-sparse-colmap-default`).
 
-Load in Python (available now):
+Load in Python:
 
 ```python
 from pathlib import Path
@@ -169,7 +169,7 @@ stack = load_stack_config(Path("config/stack.yml"))
 print(stack.slot("features", "extractor").algorithm)  # colmap_sift
 ```
 
-Planned CLI:
+CLI with a custom stack:
 
 ```bash
 luthier --dir ./photos --stack config/stack.yml --output scene.ply
@@ -196,6 +196,12 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e ".[dev,reconstruction]"
 ```
 
+For a runtime-only install from PyPI (reconstruction included):
+
+```bash
+pip install "luthier[reconstruction]"
+```
+
 After installation the `luthier` command is available on your `PATH`.
 
 ---
@@ -206,6 +212,12 @@ After installation the `luthier` command is available on your `PATH`.
 
 ```bash
 luthier --dir /path/to/photos --output /path/to/scene.ply
+```
+
+Optional custom algorithm stack:
+
+```bash
+luthier --dir ./photos --stack config/stack.yml --output scene.ply
 ```
 
 ### Omit output path (temporary file)
