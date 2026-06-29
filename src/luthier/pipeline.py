@@ -15,6 +15,7 @@ from luthier.models import (
     PointCloud,
     PreparedImage,
     ReconstructionResult,
+    ReconstructionScene,
 )
 from luthier.stack.bootstrap import load_algorithms
 from luthier.stack.config import StackConfig, load_stack_config
@@ -46,7 +47,7 @@ def reconstruct_from_directory(
     workspace_dir = Path(tempfile.mkdtemp(prefix="luthier-workspace-"))
     feature_set = _extract_features(stack, image_set, workspace_dir)
     scene = _reconstruct_scene(stack, feature_set, image_set)
-    point_cloud = _postprocess_point_cloud(stack, scene.point_cloud)
+    point_cloud = _postprocess_scene(stack, scene)
     resolved_output = _write_point_cloud(stack, point_cloud, output_path)
     return ReconstructionResult(
         point_cloud=point_cloud,
@@ -117,26 +118,51 @@ def _extract_features(
 
 def _reconstruct_scene(
     stack: StackConfig, feature_set: Any, image_set: ImageSet
-) -> Any:
+) -> ReconstructionScene:
     sfm_slot = stack.slot("reconstruction", "sfm")
     backend = resolve("reconstruction", sfm_slot)
-    return backend.reconstruct(
+    scene = backend.reconstruct(
         feature_set,
         images=image_set,
         params=sfm_slot.params,
         stack=stack,
     )
+    if not isinstance(scene, ReconstructionScene):
+        msg = "Reconstruction backend must return a ReconstructionScene."
+        raise TypeError(msg)
+    return scene
 
 
-def _postprocess_point_cloud(stack: StackConfig, point_cloud: PointCloud) -> PointCloud:
-    outliers_slot = stack.slot("postprocess", "outliers")
-    if outliers_slot.algorithm is None:
+def _postprocess_scene(stack: StackConfig, scene: ReconstructionScene) -> PointCloud:
+    point_cloud = scene.point_cloud
+    point_cloud = _apply_postprocess_slot(
+        stack,
+        "geometric_filter",
+        point_cloud,
+        reconstruction=scene.reconstruction,
+    )
+    return _apply_postprocess_slot(stack, "outliers", point_cloud)
+
+
+def _apply_postprocess_slot(
+    stack: StackConfig,
+    slot_name: str,
+    point_cloud: PointCloud,
+    *,
+    reconstruction: Any = None,
+) -> PointCloud:
+    slot = stack.slot("postprocess", slot_name)
+    if slot.algorithm is None:
         return point_cloud
     try:
-        filt = resolve("postprocess", outliers_slot)
+        filt = resolve("postprocess", slot)
     except KeyError:
         return point_cloud
-    filtered: PointCloud = filt.filter(point_cloud)
+    filtered: PointCloud = filt.filter(
+        point_cloud,
+        params=slot.params,
+        reconstruction=reconstruction,
+    )
     return filtered
 
 
