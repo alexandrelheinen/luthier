@@ -400,6 +400,7 @@ These rules apply to Cursor agents, cloud agents, and any other automated contri
 - When creating a PR: inspect `git status`, `git diff`, and branch history; write an accurate summary and test plan.
 - Return the PR URL when creation succeeds.
 - Never force-push `main`; never amend pushed commits unless explicitly requested.
+- **PR completion gate** — work on a pull request is **not complete** until the branch is **pushed** and **every required CI job is green** on that push (`quality`, `governance`, and `acceptance` when it runs). Poll CI after each push (for example `gh pr checks <number>`); fix failures and push again until all jobs pass. Do not tell the user the PR is ready for review or merged-worthy while any job is failing or pending.
 
 ### Communication
 
