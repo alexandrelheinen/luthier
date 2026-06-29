@@ -186,7 +186,7 @@ the verification of **AC-QG-01**.
 | `pytest` + coverage `fail_under` | Unit + integration tests; **≥ 80%** line coverage (AC-QG-01, AC-QG-02) |
 | `python scripts/check_governance.py` | Method enforcement: traceability, stack/code consistency, single constitution |
 | `luthier --help` | AC-CLI-01 smoke |
-| `pytest -m acceptance` (PR job) | AC-REC-* on golden data (no coverage gate) |
+| `pytest -m acceptance` | AC-REC-* on golden data (PR and `main` push) |
 
 See [.github/workflows/ci.yml](../.github/workflows/ci.yml).
 

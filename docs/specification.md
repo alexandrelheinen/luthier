@@ -326,12 +326,25 @@ implementation PR:
 
 | Package | Purpose | Owner block |
 | --- | --- | --- |
-| `numpy` | Point arrays, pycolmap interop | `io.pointcloud`, `sfm` |
-| `pycolmap` | Feature extraction, matching, incremental SfM | `sfm.colmap` |
-| `opencv-python-headless` | Image metadata / validation helpers | `io.images` |
+| `numpy` | Point arrays, pycolmap interop | `models`, `reconstruction.colmap` |
+| `pycolmap` | Feature extraction, matching, incremental SfM | `reconstruction.*` |
+| `opencv-python-headless` | Image decode | `io.opencv_decode` |
+| `open3d` | Statistical outlier removal | `postprocess.statistical_outlier_removal` |
 
-Install: `pip install luthier` (dependencies in `[project.dependencies]`) or
-`pip install -e ".[reconstruction]"` during development if optional extra is used.
+Install for reconstruction:
+
+```bash
+pip install "luthier[reconstruction]"
+```
+
+Development checkout:
+
+```bash
+pip install -e ".[dev,reconstruction]"
+```
+
+The base `pip install luthier` package does **not** include reconstruction
+dependencies; use the `[reconstruction]` extra for SfM.
 
 ---
 
