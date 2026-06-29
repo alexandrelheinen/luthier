@@ -53,9 +53,7 @@ def test_statistical_outlier_filter_returns_small_clouds_unchanged() -> None:
 
 
 def test_statistical_outlier_filter_removes_isolated_point() -> None:
-    cluster = [
-        Point3D(float(x), 0.0, 0.0) for x in np.linspace(0.0, 1.0, num=25)
-    ]
+    cluster = [Point3D(float(x), 0.0, 0.0) for x in np.linspace(0.0, 1.0, num=25)]
     outlier = Point3D(100.0, 100.0, 100.0)
     cloud = PointCloud(points=(*cluster, outlier))
 

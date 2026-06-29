@@ -12,7 +12,7 @@ from typing import Any
 import numpy as np
 import open3d as o3d
 
-from luthier.models import Point3D, PointCloud
+from luthier.models import PointCloud
 
 name = "statistical_outlier_removal"
 
