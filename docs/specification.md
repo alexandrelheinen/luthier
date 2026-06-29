@@ -250,6 +250,7 @@ Failure at any stage raises `ReconstructionError` (API) or exits with code `1`
 | `__version__` | `str` | Package version |
 | `reconstruct_from_directory` | function | Main reconstruction entry point |
 | `Point3D`, `PointCloud` | dataclass | Output geometry model |
+| `CameraIntrinsics`, `CameraPose` | dataclass | Registered camera models |
 | `LocalImageInput`, `ReconstructionResult` | dataclass | Input/output metadata |
 | `LuthierError` | exception | Base error |
 | `InvalidInputError` | exception | Bad user input |
@@ -295,6 +296,7 @@ Criteria are verified by automated tests described in [testing.md](testing.md).
 - **AC-REC-02:** When `reconstruct_from_directory` is called with fewer than two images, the system shall raise `InvalidInputError`.
 - **AC-REC-03:** When reconstruction succeeds, `ReconstructionResult.output_path` shall equal the written file path.
 - **AC-REC-04:** When reconstruction succeeds, `ReconstructionResult.point_cloud.count` shall match the vertex count in the PLY file.
+- **AC-REC-05:** When reconstruction succeeds, `ReconstructionResult.cameras` shall contain one pose per registered image, each with non-empty `name`, finite `translation`, and positive `intrinsics.focal_length`.
 
 ### 10.5 Quality gates (repository)
 
