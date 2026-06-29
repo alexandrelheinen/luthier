@@ -13,6 +13,7 @@ from luthier.io.prepare import prepare_image_set
 from luthier.reconstruction.colmap import (
     extract_features,
     match_features,
+    reconstruction_to_cameras,
     reconstruction_to_point_cloud,
     run_incremental_sfm,
     scene_from_reconstruction,
@@ -49,6 +50,25 @@ def test_reconstruction_to_point_cloud_maps_colors(tmp_path: Path) -> None:
     assert 0 <= point.r <= 255
     assert 0 <= point.g <= 255
     assert 0 <= point.b <= 255
+
+
+def test_reconstruction_to_cameras_exports_registered_poses(tmp_path: Path) -> None:
+    image_dir = tmp_path / "photos"
+    _write_overlapping_images(image_dir, 5)
+    images = prepare_image_set(image_dir)
+    database_path = tmp_path / "database.db"
+    extract_features(database_path, images)
+    match_features(database_path)
+    reconstruction = run_incremental_sfm(database_path, images, tmp_path / "sparse")
+
+    cameras = reconstruction_to_cameras(reconstruction)
+
+    assert len(cameras) == reconstruction.num_reg_images()
+    assert all(camera.name for camera in cameras)
+    assert all(camera.intrinsics.focal_length > 0 for camera in cameras)
+    assert all(
+        all(value == value for value in camera.translation) for camera in cameras
+    )
 
 
 def test_run_incremental_sfm_raises_when_no_model(tmp_path: Path) -> None:
@@ -93,3 +113,11 @@ def test_reconstruction_to_point_cloud_raises_when_empty() -> None:
     reconstruction = pycolmap.Reconstruction()
     with pytest.raises(ReconstructionError, match="no triangulated"):
         reconstruction_to_point_cloud(reconstruction)
+
+
+def test_reconstruction_to_cameras_raises_when_empty() -> None:
+    import pycolmap
+
+    reconstruction = pycolmap.Reconstruction()
+    with pytest.raises(ReconstructionError, match="no registered camera"):
+        reconstruction_to_cameras(reconstruction)
