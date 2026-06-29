@@ -26,7 +26,10 @@ _BUILTIN_MODULES: dict[str, tuple[str, ...]] = {
     "io": ("luthier.io.pathlib_discover", "luthier.io.opencv_decode"),
     "features": ("luthier.features.colmap_sift",),
     "reconstruction": ("luthier.reconstruction.colmap_incremental",),
-    "postprocess": ("luthier.postprocess.statistical_outlier_removal",),
+    "postprocess": (
+        "luthier.postprocess.colmap_reprojection_filter",
+        "luthier.postprocess.statistical_outlier_removal",
+    ),
     "output": ("luthier.output.ply_binary_le",),
 }
 
