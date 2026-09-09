@@ -30,10 +30,10 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 # Files that would duplicate CONTRIBUTING.md as a "constitution". The project
-# keeps a single guideline document; these must not exist.
+# allows exactly one thin bridge file per agent tool (AGENTS.md for generic
+# tools, CLAUDE.md for Claude Code) that must point only at .guidelines/ and
+# this document; no other rule-dump file is allowed.
 FORBIDDEN_GUIDELINE_PATHS = (
-    "AGENTS.md",
-    "CLAUDE.md",
     "GEMINI.md",
     ".windsurfrules",
     ".cursorrules",
